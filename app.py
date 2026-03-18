@@ -6,8 +6,8 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
-# إعداد Groq - تأكد من وضع مفتاحك هنا
-# استبدل "YOUR_GROQ_API_KEY" بمفتاحك الفعلي
+# تأكد من وضع مفتاحك في إعدادات Vercel (Environment Variables)
+# استبدل "YOUR_GROQ_API_KEY" بمفتاحك الفعلي في بيئة العمل السحابية
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
@@ -24,44 +24,35 @@ def generate():
         prompt = data.get('prompt', '')
 
         if not prompt:
-            return jsonify({'result': 'يرجى إدخال موضوع للبحث!'})
+            return jsonify({'result': 'يرجى إدخال موضوع للبحث'})
 
-        # إعدادات النظام لضمان تقرير أكاديمي طويل ومنسق [cite: 2, 3]
+        # إعدادات النظام لضمان تقرير أكاديمي طويل ومنسق باللغتين
         system_content = (
-            "أنت مساعد أكاديمي محترف وموثق. مهمتك هي كتابة تقارير جامعية شاملة باللغة العربية. "
-            "يجب أن يتضمن ردك دائماً: "
-            "1. مقدمة أكاديمية رصينة. "
-            "2. عناوين فرعية واضحة (عن طريق Markdown). "
-            "3. شرح مفصل جداً وموسع لكل نقطة. "
-            "4. قائمة مراجع (Citations) حقيقية في نهاية التقرير. "
-            "5. اجعل النص طويلاً جداً لضمان تغطية كافة جوانب الموضوع."
+            "You are a professional academic researcher. "
+            "If the user asks in Arabic, you MUST reply with a very detailed, long, and well-formatted academic report in Arabic. "
+            "If the user asks in English, you MUST reply with a very detailed, long, and well-formatted academic report in English. "
+            "Use Markdown for formatting, including bold titles, bullet points, and clear sections."
         )
 
-        # طلب التوليد من موديل Llama 
-        chat_completion = client.chat.completions.create(
+        completion = client.chat.completions.create(
+            model="llama3-70b-8192",
             messages=[
                 {"role": "system", "content": system_content},
-                {"role": "user", "content": f"اكتب تقرير أكاديمي مفصل جداً وموسع عن: {prompt}"}
+                {"role": "user", "content": prompt}
             ],
-            model="llama-3.1-8b-instant",
-            temperature=0.7, 
-            max_tokens=8000, # لضمان أقصى طول للنص 
+            temperature=0.7,
+            max_tokens=4000, # زيادة عدد الكلمات لضمان تقرير طويل
             top_p=1,
             stream=False,
+            stop=None,
         )
 
-        # استخراج النص الناتج
-        report_result = chat_completion.choices[0].message.content
-
-        # إرسال النتيجة بنجاح
-        return jsonify({'result': report_result})
+        result = completion.choices[0].message.content
+        return jsonify({'result': result})
 
     except Exception as e:
-        # معالجة الخطأ بشكل صحيح لتجنب رسالة "cite is not defined"
-        error_message = f"عذراً مهندس رضا، حدث خطأ فني: {str(e)}"
-        print(error_message) # يظهر في Terminal الـ VS Code
-        return jsonify({'result': error_message})
+        # معالجة الأخطاء وإرسالها لواجهة المستخدم بشكل نصي واضح
+        return jsonify({'result': f"حدث خطأ في النظام: {str(e)}"})
 
-# تشغيل السيرفر على المنفذ 5000
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
