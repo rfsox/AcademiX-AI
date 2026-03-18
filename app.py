@@ -35,7 +35,8 @@ def generate():
         )
 
         completion = client.chat.completions.create(
-            model="llama3-70b-8192",
+            # تم تحديث الموديل هنا إلى الإصدار الجديد المتاح
+            model="llama-3.3-70b-versatile", 
             messages=[
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": prompt}
