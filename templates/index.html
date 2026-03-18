@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcademiX Pro | المنصة الأكاديمية الشاملة</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@300;500;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <h2>AcademiX AI</h2>
+            <small>نظام التعليم الذكي</small>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item active"><i class="fas fa-home"></i> الرئيسة</div>
+            <div class="nav-item"><i class="fas fa-file-alt"></i> تقاريري السابقة</div>
+            <div class="nav-item"><i class="fas fa-search"></i> البحث الأكاديمي</div>
+        </nav>
+        
+        <div class="stats-card">
+            <p style="margin:0; font-weight:bold;">
+                <i class="fas fa-star" style="color:#f59e0b"></i> نقاط الخبرة: <span id="userPoints">120</span>
+            </p>
+            <small>لقب الطالب: <b>باحث ناشئ</b></small>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="glass-card">
+            <h2><i class="fas fa-magic" style="color: #00f2fe"></i> مولد التقارير الموثقة</h2>
+            <p>أدخل موضوع البحث وسأقوم بتوليده مع المراجع الأكاديمية.</p>
+            
+            <div class="input-area">
+                <textarea id="promptInput" placeholder="مثال: أثر الذكاء الاصطناعي في هندسة البرمجيات..."></textarea>
+            </div>
+
+            <div class="action-btns">
+                <button class="btn btn-primary" onclick="generateReport()">
+                    <i class="fas fa-bolt"></i> توليد الآن (+10 نقاط)
+                </button>
+                <button id="pdfBtn" class="btn btn-outline" style="display:none;" onclick="exportToPDF()">
+                    <i class="fas fa-file-pdf"></i> تصدير PDF
+                </button>
+            </div>
+            
+            <div id="loader" style="display:none; margin-top:20px; text-align:center;">
+                <i class="fas fa-spinner fa-spin"></i> جاري البحث في المصادر الأكاديمية...
+            </div>
+        </div>
+
+        <div id="reportWrapper">
+            <div id="outputContent"></div>
+            <div class="citation-box" id="citationArea">
+                <strong><i class="fas fa-book"></i> المراجع الموثقة:</strong>
+                <div id="citations"></div>
+            </div>
+        </div>
+    </main>
+
+    <p style="text-align: center; color: #555; font-size: 12px; margin: 20px 0; font-family: sans-serif;">
+        Developed by <strong>Eng Reda</strong>
+    </p>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
