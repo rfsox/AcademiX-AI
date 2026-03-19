@@ -3,3 +3,5 @@ flask-cors
 groq
 PyPDF2
 pdfplumber
+arabic-reshaper
+python-bidi
