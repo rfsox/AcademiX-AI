@@ -1,4 +1,4 @@
-/* static/css/style.css */
+/* static/style.css */
 :root {
     --primary: #4facfe;
     --secondary: #00f2fe;
@@ -6,6 +6,7 @@
     --card-dark: #1e293b;
     --text-main: #f8fafc;
     --accent: #f59e0b;
+    --success: #10b981;
 }
 
 body {
@@ -15,9 +16,10 @@ body {
     margin: 0;
     display: flex;
     min-height: 100vh;
+    transition: all 0.3s ease;
 }
 
-/* القائمة الجانبية */
+/* القائمة الجانبية (Sidebar) */
 .sidebar {
     width: 260px;
     background: var(--card-dark);
@@ -27,9 +29,15 @@ body {
     padding: 20px;
     position: fixed;
     height: 100vh;
+    z-index: 1000;
 }
 
-.logo-area { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+.logo-area { 
+    text-align: center; 
+    margin-bottom: 30px; 
+    border-bottom: 1px solid #334155; 
+    padding-bottom: 15px; 
+}
 .logo-area h2 { color: var(--secondary); font-family: 'Tajawal'; margin: 0; }
 
 .nav-menu { flex: 1; }
@@ -42,8 +50,12 @@ body {
     align-items: center;
     gap: 12px;
     transition: 0.3s;
+    color: #94a3b8;
 }
-.nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+.nav-item:hover, .nav-item.active { 
+    background: var(--primary); 
+    color: white; 
+}
 
 .stats-card {
     background: rgba(245, 158, 11, 0.1);
@@ -55,9 +67,16 @@ body {
 
 /* المحتوى الرئيسي */
 .main-content {
-    margin-right: 260px; /* المسافة للقائمة الجانبية */
+    margin-right: 260px; /* مسافة ثابتة للكمبيوتر */
     flex: 1;
     padding: 40px;
+    width: 100%;
+}
+
+.section-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .glass-card {
@@ -65,6 +84,7 @@ body {
     border-radius: 20px;
     padding: 30px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 .input-area textarea {
@@ -77,9 +97,15 @@ body {
     padding: 15px; 
     font-size: 16px; 
     resize: none;
+    font-family: inherit;
 }
 
-.action-btns { display: flex; gap: 15px; margin-top: 20px; }
+.action-btns { 
+    display: flex; 
+    gap: 15px; 
+    margin-top: 20px; 
+}
+
 .btn { 
     padding: 12px 25px;
     border-radius: 10px; 
@@ -89,7 +115,9 @@ body {
     display: flex; 
     align-items: center; 
     gap: 8px;
+    transition: 0.2s;
 }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: #0f172a; }
 .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
 
@@ -105,47 +133,81 @@ body {
 #reportWrapper { 
     background: white; 
     color: #1e293b; 
-    padding: 50px; 
+    padding: 40px; 
     margin-top: 30px; 
-    border-radius: 8px;
+    border-radius: 12px;
     display: none; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 /* ====================================================== */
-/* تعديلات الظهور بالطول للموبايل (بدون حذف أي كود قديم)   */
+/* تعديلات الموبايل الاحترافية (ظهور الميزات بالطول)       */
 /* ====================================================== */
 @media (max-width: 768px) {
     body {
-        flex-direction: column; /* جعل العناصر تحت بعضها */
+        flex-direction: column; /* ترتيب العناصر عمودياً */
     }
 
     .sidebar { 
-        display: none; /* إخفاء القائمة الجانبية في الموبايل لتوفير مساحة */
+        position: relative; /* جعل القائمة تظهر في الأعلى وليست ثابتة بالجانب */
+        width: 100%;
+        height: auto;
+        min-height: auto;
+        padding: 15px;
+        border-left: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .logo-area {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: row; /* جعل الميزات بجانب بعضها بالعرض في الموبايل */
+        overflow-x: auto; /* السماح بسحب القائمة يميناً ويساراً */
+        gap: 8px;
+        padding-bottom: 10px;
+        scrollbar-width: none; /* إخفاء شريط التمرير لجمالية التصميم */
+    }
+    .nav-menu::-webkit-scrollbar { display: none; }
+
+    .nav-item {
+        margin-bottom: 0;
+        white-space: nowrap; /* منع انقسام نص الميزة على سطرين */
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .stats-card {
+        display: none; /* إخفاء بطاقة النقاط في الموبايل لتوفير مساحة */
     }
 
     .main-content { 
-        margin-right: 0; /* إلغاء الهامش الجانبي */
-        padding: 20px; 
+        margin-right: 0; /* إلغاء الفراغ الجانبي */
+        padding: 20px 15px;
         width: 100%;
         box-sizing: border-box;
     }
 
     .glass-card {
-        padding: 20px; /* تقليل الحواف في الموبايل */
+        padding: 20px;
     }
 
     .action-btns {
-        flex-direction: column; /* جعل الأزرار فوق بعضها في الموبايل */
+        flex-direction: column; /* الأزرار فوق بعضها في الموبايل */
         gap: 10px;
     }
 
     .btn {
-        width: 100%; /* جعل الزر يأخذ كامل العرض */
+        width: 100%;
         justify-content: center;
     }
 
     #reportWrapper {
-        padding: 20px; /* تقليل حواف التقرير ليناسب شاشة الهاتف */
+        padding: 20px;
         font-size: 14px;
+        margin-top: 20px;
     }
 }
