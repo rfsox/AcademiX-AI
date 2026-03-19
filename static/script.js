@@ -1,18 +1,23 @@
-// ميزة توليد التقارير
-async function generateReport() {
-    const promptInput = document.getElementById('promptInput');
-    const outputContent = document.getElementById('outputContent');
-    const reportWrapper = document.getElementById('reportWrapper');
-    const loader = document.getElementById('loader');
-    const pdfBtn = document.getElementById('pdfBtn');
+// استهداف العناصر مرة واحدة لضمان الأداء
+const getEl = (id) => document.getElementById(id);
 
-    if (!promptInput.value) {
+// --- الميزة الأولى: توليد التقارير ---
+async function generateReport() {
+    const promptInput = getEl('promptInput');
+    const outputContent = getEl('outputContent');
+    const reportWrapper = getEl('reportWrapper');
+    const loader = getEl('loader');
+    const pdfBtn = getEl('pdfBtn');
+
+    if (!promptInput.value.trim()) {
         alert("يرجى إدخال موضوع البحث!");
         return;
     }
 
+    // تجهيز الواجهة للتحميل
     loader.style.display = 'block';
     reportWrapper.style.display = 'none';
+    if(pdfBtn) pdfBtn.style.display = 'none';
 
     try {
         const response = await fetch('/generate', {
@@ -20,63 +25,103 @@ async function generateReport() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: promptInput.value }),
         });
+
+        if (!response.ok) throw new Error("فشل الاستجابة من السيرفر");
+
         const data = await response.json();
+        
         if (data.result) {
             outputContent.style.direction = "rtl";
+            // تحويل Markdown إلى HTML باستخدام مكتبة marked
             outputContent.innerHTML = marked.parse(data.result);
+            
             reportWrapper.style.display = 'block';
-            pdfBtn.style.display = 'flex';
+            if(pdfBtn) pdfBtn.style.display = 'flex';
+            
             updateUserPoints(10);
+        } else {
+            alert("حدث خطأ: " + (data.error || "نتيجة فارغة"));
         }
     } catch (error) {
-        alert("خطأ في الاتصال بالسيرفر");
+        console.error("Error:", error);
+        alert("خطأ في الاتصال بالسيرفر، تأكد من تشغيل app.py");
     } finally {
         loader.style.display = 'none';
     }
 }
 
-// ميزة رفع وتلخيص PDF
+// --- الميزة الثانية: رفع وتلخيص PDF ---
 document.addEventListener('DOMContentLoaded', () => {
-    const pdfUpload = document.getElementById('pdfUpload');
+    const pdfUpload = getEl('pdfUpload');
+    
     if (pdfUpload) {
         pdfUpload.addEventListener('change', async function() {
             const file = this.files[0];
             if (!file) return;
 
+            // التحقق من نوع الملف وحجمه (إضافة أمان)
+            if (file.type !== "application/pdf") {
+                alert("يرجى اختيار ملف PDF فقط");
+                return;
+            }
+
             const formData = new FormData();
             formData.append('file', file);
             
-            document.getElementById('loader').style.display = 'block';
+            const loader = getEl('loader');
+            loader.style.display = 'block';
 
             try {
                 const response = await fetch('/summarize_pdf', {
                     method: 'POST',
-                    body: formData
+                    body: formData // إرسال كـ FormData
                 });
+
                 const data = await response.json();
+                
                 if (data.result) {
-                    const output = document.getElementById('outputContent');
+                    const output = getEl('outputContent');
                     output.style.direction = "rtl";
                     output.innerHTML = marked.parse(data.result);
-                    document.getElementById('reportWrapper').style.display = 'block';
+                    getEl('reportWrapper').style.display = 'block';
+                    if(getEl('pdfBtn')) getEl('pdfBtn').style.display = 'flex';
+                    
                     updateUserPoints(15);
+                } else {
+                    alert("فشل التلخيص: " + data.result);
                 }
             } catch (error) {
-                alert("فشل رفع الملف");
+                console.error("Upload Error:", error);
+                alert("حدث خطأ أثناء رفع ومعالجة الملف");
             } finally {
-                document.getElementById('loader').style.display = 'none';
-                pdfUpload.value = '';
+                loader.style.display = 'none';
+                pdfUpload.value = ''; // تصفير الحقل لرفع ملف آخر لاحقاً
             }
         });
     }
 });
 
+// تحديث النقاط
 function updateUserPoints(pts) {
-    const p = document.getElementById('userPoints');
-    if (p) p.innerText = parseInt(p.innerText) + pts;
+    const p = getEl('userPoints');
+    if (p) {
+        let currentPoints = parseInt(p.innerText) || 0;
+        p.innerText = currentPoints + pts;
+    }
 }
 
+// تصدير PDF
 function exportToPDF() {
-    const element = document.getElementById('reportWrapper');
-    html2pdf().from(element).save('AcademiX_Report.pdf');
+    const element = getEl('reportWrapper');
+    if (!element) return;
+
+    const opt = {
+        margin:       0.5,
+        filename:     'AcademiX_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
 }
