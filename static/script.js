@@ -1,179 +1,118 @@
-// AcademiX Pro - Core Engine 2026
+// 1. وظائف التنقل بين الأقسام (Show/Hide Sections)
+function showSection(sectionName) {
+    // إخفاء كل الأقسام
+    document.getElementById('generate-section').style.display = 'none';
+    document.getElementById('summarize-section').style.display = 'none';
+    document.getElementById('result-area').style.display = 'none';
 
-// إعدادات المكتبات (تأكد من تفعيل السطور الجديدة)
-marked.setOptions({ 
-    breaks: true, 
-    gfm: true,
-    headerIds: true
-});
+    // إزالة حالة النشاط من كل الأزرار
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
 
-// 1. محرك توليد التقارير الأكاديمية
+    // إظهار القسم المطلوب وتفعيل الزر الخاص به
+    if (sectionName === 'generate') {
+        document.getElementById('generate-section').style.display = 'block';
+        event.currentTarget.classList.add('active');
+    } else if (sectionName === 'summarize') {
+        document.getElementById('summarize-section').style.display = 'block';
+        event.currentTarget.classList.add('active');
+    } else if (sectionName === 'mcq') {
+        document.getElementById('summarize-section').style.display = 'block'; // نستخدم نفس واجهة الرفع للملفات
+        event.currentTarget.classList.add('active');
+    }
+}
+
+// 2. وظيفة توليد التقارير (Generate Report)
 async function generateReport() {
-    const promptInput = document.getElementById('promptInput');
-    const prompt = promptInput.value.trim();
-    
-    if (!prompt) return alert("الرجاء إدخال موضوع البحث");
+    const prompt = document.getElementById('report-prompt').value;
+    if (!prompt) return alert("يرجى إدخال موضوع البحث أولاً");
 
-    showLoader(true);
+    toggleLoader(true);
     try {
         const response = await fetch('/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: prompt })
         });
-
         const data = await response.json();
-        if (data.report) {
-            renderFormattedOutput(data.report, "التقرير الأكاديمي الشامل");
-            updateUserPoints(15); // إضافة نقاط للمستخدم
-        } else {
-            alert("حدث خطأ في استلام البيانات: " + (data.error || "خطأ مجهول"));
-        }
+        displayResult(data.report);
     } catch (error) {
-        console.error("Error:", error);
-        alert("فشل الاتصال بالسيرفر الأكاديمي");
+        alert("حدث خطأ في الاتصال بالسيرفر");
     } finally {
-        showLoader(false);
+        toggleLoader(false);
     }
 }
 
-// 2. محرك الرؤية (حل الأسئلة بالصور) - إضافة جديدة
-async function solveImage() {
-    const fileInput = document.getElementById('imageUpload');
-    if (!fileInput.files[0]) return alert("يرجى اختيار صورة أولاً");
-
-    const formData = new FormData();
-    formData.append('image', fileInput.files[0]);
-
-    showLoader(true);
-    try {
-        const response = await fetch('/analyze_image', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        if (data.solution) {
-            renderFormattedOutput(data.solution, "تحليل وحل الصورة الذكي");
-            updateUserPoints(20);
-        } else {
-            alert("فشل تحليل الصورة");
-        }
-    } catch (error) {
-        alert("خطأ في معالجة الصورة");
-    } finally {
-        showLoader(false);
-    }
-}
-
-// 3. تنسيق المخرجات (Markdown Engine)
-function renderFormattedOutput(rawText, title) {
-    const resultArea = document.getElementById('resultArea');
-    const content = document.getElementById('outputContent');
-    
-    resultArea.style.display = 'block';
-
-    // تحويل الماركدوان
-    let htmlContent = marked.parse(rawText);
-
-    content.innerHTML = `
-        <div class="report-header" style="text-align:center; border-bottom:3px solid var(--primary); margin-bottom:30px; padding-bottom:15px;">
-            <h1 style="color:var(--bg-dark); font-weight:900; font-size: 2rem;">${title}</h1>
-            <p style="color:#64748b; font-size: 0.9rem;">AcademiX AI Global System © 2026</p>
-        </div>
-        <div class="markdown-body">
-            ${htmlContent}
-        </div>
-    `;
-    
-    window.scrollTo({ top: resultArea.offsetTop - 50, behavior: 'smooth' });
-}
-
-// 4. نظام النقاط التفاعلي
-function updateUserPoints(pts) {
-    const pointsElement = document.getElementById('userPoints');
-    if (pointsElement) {
-        let currentPoints = parseInt(pointsElement.innerText);
-        let newPoints = currentPoints + pts;
-        
-        // تحريك العداد
-        let counter = currentPoints;
-        let interval = setInterval(() => {
-            if (counter >= newPoints) clearInterval(interval);
-            pointsElement.innerText = counter;
-            counter++;
-        }, 50);
-    }
-}
-
-// 5. حفظ الملف PDF (نسخة محسنة للجودة العالية)
-function exportToPDF() {
-    const element = document.getElementById('outputContent');
-    const btn = document.querySelector('.action-btn.pdf');
-    
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحضير...';
-
-    const opt = {
-        margin: 15,
-        filename: 'AcademiX_Academic_File.pdf',
-        image: { type: 'jpeg', quality: 1.0 },
-        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerHTML = originalContent;
-    });
-}
-
-// 6. تلخيص PDF
+// 3. وظيفة تلخيص الـ PDF (Summarize PDF)
 async function summarizePDF() {
-    const fileInput = document.getElementById('pdfUpload');
-    if (!fileInput.files[0]) return alert("يرجى رفع ملف PDF أولاً");
+    const fileInput = document.getElementById('pdf-file');
+    if (fileInput.files.length === 0) return alert("يرجى اختيار ملف PDF");
 
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
 
-    showLoader(true);
+    toggleLoader(true);
     try {
-        const response = await fetch('/summarize_pdf', { method: 'POST', body: formData });
+        const response = await fetch('/summarize_pdf', {
+            method: 'POST',
+            body: formData
+        });
         const data = await response.json();
-        if (data.summary) {
-            renderFormattedOutput(data.summary, "ملخص المحتوى الأكاديمي");
-            updateUserPoints(10);
-        }
+        displayResult(data.summary);
     } catch (error) {
-        alert("خطأ في قراءة ملف PDF");
+        alert("خطأ في معالجة الملف");
     } finally {
-        showLoader(false);
+        toggleLoader(false);
     }
 }
 
-// 7. وظائف واجهة المستخدم (UI)
-function showLoader(show) {
-    const loader = document.getElementById('loader');
-    const resultArea = document.getElementById('resultArea');
-    if (loader) loader.style.display = show ? 'flex' : 'none';
-    if (show && resultArea) resultArea.style.display = 'none';
+// 4. عرض النتائج وتحويل الـ Markdown إلى HTML
+function displayResult(content) {
+    const resultArea = document.getElementById('result-area');
+    const outputContent = document.getElementById('output-content');
+    
+    // استخدام مكتبة marked لتحويل النصوص الأكاديمية
+    outputContent.innerHTML = marked.parse(content);
+    
+    resultArea.style.display = 'block';
+    resultArea.scrollIntoView({ behavior: 'smooth' });
 }
 
-function copyText() {
-    const text = document.getElementById('outputContent').innerText;
+// 5. التحكم في شاشة التحميل (Loader)
+function toggleLoader(show) {
+    document.getElementById('loader').style.display = show ? 'flex' : 'none';
+    if (show) {
+        document.getElementById('result-area').style.display = 'none';
+    }
+}
+
+// 6. وظيفة نسخ النص (Copy Content)
+function copyResult() {
+    const text = document.getElementById('output-content').innerText;
     navigator.clipboard.writeText(text).then(() => {
         alert("تم نسخ النص بنجاح!");
     });
 }
 
-// معاينة الصور فور اختيارها
-function previewImage(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('previewImg').src = e.target.result;
-            document.getElementById('imagePreviewContainer').style.display = 'block';
-            document.getElementById('imageStatusText').innerText = "تم التقاط الصورة بنجاح";
+// 7. تحسين منطقة الرفع (Drop Zone Interaction)
+const dropZone = document.querySelector('.drop-zone');
+if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--primary)';
+        dropZone.style.background = 'rgba(99, 102, 241, 0.1)';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = 'var(--glass-border)';
+        dropZone.style.background = 'transparent';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            document.getElementById('pdf-file').files = files;
+            alert("تم استلام الملف: " + files[0].name);
         }
-        reader.readAsDataURL(input.files[0]);
-    }
+    });
 }
