@@ -59,36 +59,41 @@ def generate():
     except Exception as e:
         return jsonify({'report': f"خطأ: {str(e)}"}), 500
 
-# --- 2. تلخيص PDF (8000 توكن + لغة سليمة) ---
+# --- 2. تلخيص PDF (تعديل لتجنب الـ Rate Limit) ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
         if 'file' not in request.files:
             return jsonify({'summary': 'لم يتم العثور على ملف'}), 400
         
-        text = extract_clean_text(request.files['file'])
+        file = request.files['file']
+        text = extract_clean_text(file)
+        
         if not text.strip():
             return jsonify({'summary': 'الملف لا يحتوي على نص قابل للقراءة.'})
 
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            # غيرنا النموذج لنسخة أسرع وأخف استهلاكاً للرصيد المجاني
+            model="llama3-8b-8192", 
             messages=[
                 {
                     "role": "system", 
                     "content": (
-                        "You are an academic expert. Summarize the following text. "
-                        "Format: Write a section in English, followed immediately by its Arabic translation. "
-                        "Ensure the Arabic text is natural, coherent, and correctly ordered. "
-                        "Provide a very long and detailed response (up to 8000 tokens)."
+                        "You are an academic summarizer. Provide a thorough summary. "
+                        "Format: English section followed by Arabic translation. "
+                        "Keep the Arabic natural and correctly aligned."
                     )
                 },
-                {"role": "user", "content": f"Analyze this text in depth:\n\n{text[:25000]}"}
+                {"role": "user", "content": f"Summarize this text comprehensively:\n\n{text[:15000]}"}
             ],
             temperature=0.5,
-            max_tokens=8000 
+            max_tokens=4000 # قللنا لـ 4000 حتى يتقبله السيرفر المجاني وما يرفض الطلب
         )
         return jsonify({'summary': completion.choices[0].message.content})
     except Exception as e:
+        # إذا خلص الرصيد تماماً، تظهر رسالة مفهومة
+        if "rate_limit_exceeded" in str(e).lower():
+            return jsonify({'summary': "⚠️ انتهت حصتك المجانية من الكلمات لهذا اليوم. يرجى المحاولة بعد ساعة أو غداً."}), 429
         return jsonify({'summary': f"خطأ تقني: {str(e)}"}), 500
 
 # --- 3. مصنع الأسئلة MCQ (حل مشكلة النص المعكوس) ---
