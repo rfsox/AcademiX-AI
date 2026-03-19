@@ -8,109 +8,94 @@ from groq import Groq
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-# إعداد مفتاح API الخاص بـ Groq
+# تأكد من وضع المفتاح في إعدادات Vercel باسم GROQ_API_KEY
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
-# الموديلات المستخدمة
-MODEL_ACADEMIC = "llama-3.3-70b-versatile" # للتقارير والتلخيص العميق
-MODEL_FAST = "llama-3.1-8b-instant"       # للـ MCQ لضمان السرعة وعدم الكراش
+# نستخدم الموديلات الأسرع لتجنب الـ Timeout في Vercel
+MODEL_QUICK = "llama-3.1-8b-instant"   # سريع جداً للأسئلة
+MODEL_POWER = "llama-3.3-70b-versatile" # قوي جداً للتلخيص والتقارير
 
-def extract_content(file_storage):
-    """دالة لاستخراج النص من ملف PDF بدقة عالية"""
+def get_pdf_text(file):
+    """استخراج النص بذكاء من أول 10 صفحات لضمان السرعة"""
     text = ""
     try:
-        file_storage.seek(0)
-        with pdfplumber.open(io.BytesIO(file_storage.read())) as pdf:
-            # يقرأ أول 20 صفحة لضمان عدم تجاوز حجم الذاكرة
-            for page in pdf.pages[:20]:
+        file.seek(0)
+        with pdfplumber.open(io.BytesIO(file.read())) as pdf:
+            pages = pdf.pages[:10] # نكتفي بـ 10 صفحات لضمان استقرار السيرفر المجاني
+            for page in pages:
                 content = page.extract_text()
-                if content:
-                    text += content + "\n"
-    except Exception as e:
-        print(f"Error extracting PDF: {e}")
+                if content: text += content + "\n"
+    except: pass
     return text
 
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
 @app.route('/generate', methods=['POST'])
-def generate():
-    """توليد تقرير أكاديمي طويل (6000 توكن)"""
+def generate_report():
     try:
         data = request.get_json()
-        topic = data.get('prompt')
+        prompt = data.get('prompt', '')
         
-        completion = client.chat.completions.create(
-            model=MODEL_ACADEMIC,
+        chat_completion = client.chat.completions.create(
+            model=MODEL_POWER,
             messages=[
-                {"role": "system", "content": "أنت خبير أكاديمي. اكتب تقريراً مفصلاً جداً باللغة العربية مع مصطلحات إنجليزية. استخدم تنسيق Markdown."},
-                {"role": "user", "content": f"اكتب بحثاً شاملاً عن: {topic}"}
+                {"role": "system", "content": "أنت خبير أكاديمي محترف. اكتب تقارير طويلة ومنظمة بأسلوب Markdown."},
+                {"role": "user", "content": f"اكتب تقريراً مفصلاً عن: {prompt}"}
             ],
-            temperature=0.6,
-            max_tokens=6000
+            max_tokens=4000
         )
-        return jsonify({'report': completion.choices[0].message.content})
+        return jsonify({'report': chat_completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'report': str(e)}), 500
+        return jsonify({'report': f"Error: {str(e)}"}), 500
 
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
-    """تلخيص شرح مفصل ثنائي اللغة"""
     try:
-        raw_text = extract_content(request.files['file'])
-        if not raw_text:
-            return jsonify({'summary': "لم يتم العثور على نص في الملف"}), 400
+        text = get_pdf_text(request.files['file'])
+        if not text: return jsonify({'summary': "تعذر قراءة الملف"}), 400
 
-        completion = client.chat.completions.create(
-            model=MODEL_ACADEMIC,
+        response = client.chat.completions.create(
+            model=MODEL_POWER,
             messages=[
-                {"role": "system", "content": """أنت خبير تلخيص. قدم شرحاً تلخيصياً وافياً.
-                القواعد:
-                1. شرح المفاهيم بالعربي مع كتابة المصطلحات بالإنجليزية بين قوسين.
-                2. تلخيص الأفكار على شكل فقرات مترابطة وليس نقاط فقط.
-                3. الحفاظ على المنهج العلمي للملف."""},
-                {"role": "user", "content": f"اشرح ولخص هذا النص بأسلوب أكاديمي مترجم:\n\n{raw_text[:12000]}"}
+                {"role": "system", "content": "أنت خبير تلخيص أكاديمي. اشرح المادة العلمية بأسلوب فقرات مترجمة (عربي/إنجليزي) وضع المصطلحات المهمة بين قوسين."},
+                {"role": "user", "content": f"لخص هذا النص شرحاً وافياً:\n\n{text[:10000]}"}
             ],
-            max_tokens=5000
+            max_tokens=3000
         )
-        return jsonify({'summary': completion.choices[0].message.content})
+        return jsonify({'summary': response.choices[0].message.content})
     except Exception as e:
-        return jsonify({'summary': str(e)}), 500
+        return jsonify({'summary': f"خطأ في السيرفر: {str(e)}"}), 500
 
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
-    """توليد أسئلة MCQ مترجمة (نظام دفعات لضمان عدم الكراش)"""
     try:
-        raw_text = extract_content(request.files['file'])
-        if not raw_text:
-            return jsonify({'error': "الملف فارغ"}), 400
+        text = get_pdf_text(request.files['file'])
+        if not text: return jsonify({'error': "الملف فارغ"}), 400
 
-        # نستخدم الموديل السريع هنا لتجنب 500 Internal Server Error في Vercel
-        completion = client.chat.create(
-            model=MODEL_FAST,
+        # هنا السر في السرعة: نستخدم الموديل الاصغر 8b لكي لا يحدث Timeout
+        response = client.chat.completions.create(
+            model=MODEL_QUICK,
             messages=[
-                {"role": "system", "content": """أنت محترف صياغة أسئلة امتحانية. 
-                استخرج 15 سؤال MCQ دقيق من المنهج.
-                التنسيق الإلزامي لكل سؤال:
-                EN: [Question text in English]
-                AR: [ترجمة السؤال بالعربية]
-                A) [Option EN] / [الترجمة بالعربية]
-                B) [Option EN] / [الترجمة بالعربية]
-                C) [Option EN] / [الترجمة بالعربية]
-                D) [Option EN] / [الترجمة بالعربية]
-                Answer: [Correct Option Letter]
-                --------------------------------------"""},
-                {"role": "user", "content": f"صمم 15 سؤالاً مترجماً من هذا النص:\n\n{raw_text[:8000]}"}
+                {"role": "system", "content": """أنت محترف أسئلة MCQ. صمم 15 سؤالاً من النص المرفق.
+                يجب أن يكون التنسيق ثنائي اللغة تماماً كالتالي:
+                EN: Question text?
+                AR: ترجمة السؤال؟
+                A) Option EN / الترجمة العربية
+                B) Option EN / الترجمة العربية
+                C) Option EN / الترجمة العربية
+                D) Option EN / الترجمة العربية
+                Answer: [الخيار الصحيح]"""},
+                {"role": "user", "content": f"أنشئ 15 سؤالاً مترجماً بدقة من المنهج التالي:\n\n{text[:8000]}"}
             ],
-            temperature=0.3,
-            max_tokens=3500
+            temperature=0.3, # لزيادة الدقة في المنهج
+            max_tokens=3000
         )
-        return jsonify({'questions': completion.choices[0].message.content})
+        return jsonify({'questions': response.choices[0].message.content})
     except Exception as e:
-        print(f"MCQ Error: {e}")
-        return jsonify({'error': "حدث خطأ أثناء التوليد، حاول مرة أخرى"}), 500
+        return jsonify({'error': f"Server Error: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
