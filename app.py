@@ -5,14 +5,6 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-# مكتبات معالجة النص العربي لضمان القراءة الصحيحة
-try:
-    import arabic_reshaper
-    from bidi.algorithm import get_display
-    HAS_ARABIC_TOOLS = True
-except ImportError:
-    HAS_ARABIC_TOOLS = False
-
 app = Flask(__name__)
 CORS(app)
 
@@ -20,20 +12,25 @@ CORS(app)
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
-def fix_extracted_text(text):
-    """تصحيح ترتيب الحروف العربية المستخرجة من PDF"""
-    if not text: return ""
-    if HAS_ARABIC_TOOLS:
-        # إصلاح الحروف المقطعة والمعكوسة التي تظهر في بعض ملفات الـ PDF
-        reshaped = arabic_reshaper.reshape(text)
-        return get_display(reshaped)
-    return text
+def extract_clean_text(file_storage):
+    """استخراج النص من PDF بدون تخريب الترتيب العربي"""
+    extracted_text = ""
+    try:
+        with pdfplumber.open(io.BytesIO(file_storage.read())) as pdf:
+            # معالجة أول 40 صفحة لضمان عدم الانقطاع وتغطية المحتوى
+            for page in pdf.pages[:40]:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text + "\n"
+    except Exception as e:
+        print(f"Error reading PDF: {e}")
+    return extracted_text
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# --- 1. مولد التقارير (8000 توكن + تفصيل أكاديمي) ---
+# --- 1. مولد التقارير (8000 توكن) ---
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
@@ -48,9 +45,9 @@ def generate():
                 {
                     "role": "system", 
                     "content": (
-                        "أنت بروفيسور خبير. قدم تقريراً طويلاً جداً ومفصلاً وشاملاً. "
-                        "يجب أن يكون التقرير غنياً بالمعلومات مع عناوين فرعية ومراجع. "
-                        "استخدم لغة أكاديمية رصينة ولا تتوقف حتى تنهي كافة جوانب الموضوع."
+                        "أنت بروفيسور خبير. اكتب بأسلوب أكاديمي رصين. "
+                        "يجب أن يكون النص العربي منسقاً وسليماً لغوياً (من اليمين لليسار). "
+                        "قدم تقريراً ضخماً ومفصلاً جداً يتجاوز الـ 8000 توكن."
                     )
                 },
                 {"role": "user", "content": prompt}
@@ -62,24 +59,15 @@ def generate():
     except Exception as e:
         return jsonify({'report': f"خطأ: {str(e)}"}), 500
 
-# --- 2. تلخيص PDF (حل مشكلة الانقطاع + ترجمة احترافية) ---
+# --- 2. تلخيص PDF (8000 توكن + لغة سليمة) ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
         if 'file' not in request.files:
             return jsonify({'summary': 'لم يتم العثور على ملف'}), 400
         
-        file = request.files['file']
-        extracted_text = ""
-        
-        with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            # زيادة عدد الصفحات المعالجة لضمان شمولية التلخيص
-            for page in pdf.pages[:50]: 
-                text = page.extract_text()
-                if text:
-                    extracted_text += fix_extracted_text(text) + "\n"
-
-        if not extracted_text.strip():
+        text = extract_clean_text(request.files['file'])
+        if not text.strip():
             return jsonify({'summary': 'الملف لا يحتوي على نص قابل للقراءة.'})
 
         completion = client.chat.completions.create(
@@ -88,14 +76,13 @@ def summarize_pdf():
                 {
                     "role": "system", 
                     "content": (
-                        "You are an expert academic summarizer. Your goal is to provide a MASSIVE, DETAILED summary. "
-                        "For each section of the document, provide: "
-                        "1. Detailed English explanation. "
-                        "2. Immediate accurate Arabic translation. "
-                        "Keep the flow continuous and do not cut the text short. Use 8000 tokens fully if needed."
+                        "You are an academic expert. Summarize the following text. "
+                        "Format: Write a section in English, followed immediately by its Arabic translation. "
+                        "Ensure the Arabic text is natural, coherent, and correctly ordered. "
+                        "Provide a very long and detailed response (up to 8000 tokens)."
                     )
                 },
-                {"role": "user", "content": f"Analyze this text in depth (English & Arabic):\n\n{extracted_text[:30000]}"}
+                {"role": "user", "content": f"Analyze this text in depth:\n\n{text[:25000]}"}
             ],
             temperature=0.5,
             max_tokens=8000 
@@ -104,20 +91,14 @@ def summarize_pdf():
     except Exception as e:
         return jsonify({'summary': f"خطأ تقني: {str(e)}"}), 500
 
-# --- 3. مصنع الأسئلة MCQ (جديد: رفع ملف + ترجمة مقابلة + 8000 توكن) ---
+# --- 3. مصنع الأسئلة MCQ (حل مشكلة النص المعكوس) ---
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
     try:
         if 'file' not in request.files:
-            return jsonify({'error': 'يرجى إرفاق ملف لإنشاء الأسئلة'}), 400
+            return jsonify({'error': 'يرجى إرفاق ملف'}), 400
         
-        file = request.files['file']
-        extracted_text = ""
-        with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            for page in pdf.pages[:30]: # قراءة نص كافٍ لتوليد أسئلة كثيرة
-                text = page.extract_text()
-                if text:
-                    extracted_text += fix_extracted_text(text) + "\n"
+        text = extract_clean_text(request.files['file'])
 
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -125,15 +106,15 @@ def generate_mcq():
                 {
                     "role": "system", 
                     "content": (
-                        "أنت خبير في وضع المناهج والأسئلة الامتحانية. "
-                        "قم بتوليد أكبر عدد ممكن من أسئلة الاختيار من متعدد (MCQ). "
-                        "نظام العمل: اكتب السؤال بالإنجليزية وتحته مباشرة الترجمة العربية. "
-                        "الخيارات (A, B, C, D) يجب أن تكون مترجمة أيضاً. "
-                        " ضع الاجابه الصحسحه تحت كل سؤال ومترجمه. "
-                        "استخدم تنسيق Markdown لجعل الأسئلة سهلة القراءة والطباعة."
+                        "أنت خبير وضع امتحانات. قم بتوليد أسئلة MCQ كثيرة جداً. "
+                        "قاعدة صارمة: اكتب السؤال بالإنجليزية أولاً، ثم ترجمته العربية أسفله مباشرة. "
+                        "تأكد أن النص العربي مكتوب بشكل صحيح وسليم (Natural Arabic) وليس حروفاً مقطعة. "
+                        "أظهر الخيارات (A, B, C, D) مع ترجمتها، ثم الإجابة الصحيحة مع التوضيح. "
+                        "استخدم Markdown والتنسيق التالي:\n"
+                        "Q1: [English Question]\nس1: [السؤال بالعربي]\n"
                     )
                 },
-                {"role": "user", "content": f"Generate a huge bank of MCQs from this text:\n\n{extracted_text[:25000]}"}
+                {"role": "user", "content": f"Generate a massive MCQ bank from this text:\n\n{text[:25000]}"}
             ],
             temperature=0.6,
             max_tokens=8000 
@@ -143,6 +124,5 @@ def generate_mcq():
         return jsonify({'error': str(e)}), 500
 
 application = app
-
 if __name__ == '__main__':
     app.run(debug=True)
