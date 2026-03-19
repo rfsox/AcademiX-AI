@@ -7,7 +7,8 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@300;500;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/style.css">
+    
+    <link rel="stylesheet" href="/style.css">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -57,7 +58,7 @@
                     <button class="btn btn-primary" onclick="generateReport()">
                         <i class="fas fa-bolt"></i> توليد الآن (+10 نقاط)
                     </button>
-                    <button id="pdfBtn" class="btn btn-outline" style="display:none;" onclick="exportToPDF()">
+                    <button id="pdfBtnReport" class="btn btn-outline" style="display:none;" onclick="exportToPDF()">
                         <i class="fas fa-file-pdf"></i> تصدير PDF
                     </button>
                 </div>
@@ -66,20 +67,15 @@
 
         <div id="pdfSection" class="section-container" style="display:none;">
             <div class="glass-card">
-                <h2><i class="fas fa-file-upload" style="color: #4facfe"></i> تلخيص ملفات PDF</h2>
-                <p>ارفع ملف المحاضرة وسيقوم الذكاء الاصطناعي بتلخيصه في نقاط ذكية.</p>
-                <div class="input-area" style="border: 2px dashed #334155; padding: 40px; text-align: center; border-radius: 12px;">
-                    <input type="file" id="pdfUpload" accept=".pdf" style="display: none;">
-                    <label for="pdfUpload" style="cursor: pointer;">
-                        <i class="fas fa-cloud-upload-alt fa-3x" style="color: #4facfe; margin-bottom: 15px;"></i>
-                        <p>اضغط هنا لاختيار ملف PDF من جهازك</p>
-                    </label>
+                <h2><i class="fas fa-file-upload" style="color: #4facfe"></i> تلخيص ملفات PDF (مزدوج)</h2>
+                <p>ارفع ملف المحاضرة وسيقوم النظام بتلخيصه (إنجليزي + عربي) بشكل مفصل.</p>
+                <div class="pdf-upload-box" onclick="document.getElementById('pdfUpload').click()" style="border: 2px dashed #334155; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer;">
+                    <input type="file" id="pdfUpload" accept=".pdf" style="display: none;" onchange="handleFileUpload(this)">
+                    <i class="fas fa-cloud-upload-alt fa-3x" style="color: #4facfe; margin-bottom: 15px;"></i>
+                    <p id="fileName">اضغط هنا لاختيار ملف PDF من جهازك</p>
                 </div>
-                <div class="action-btns">
-                    <button class="btn btn-primary" disabled title="سيتم تفعيل الميزة بعد ربط السيرفر">
-                        <i class="fas fa-align-left"></i> ابدأ التلخيص (قريباً)
-                    </button>
-                </div>
+                <div class="action-btns" id="pdfActionArea">
+                    </div>
             </div>
         </div>
 
@@ -91,8 +87,8 @@
                     <textarea id="mcqInput" placeholder="مثال: أساسيات الشبكات، علم النفس التربوي..."></textarea>
                 </div>
                 <div class="action-btns">
-                    <button class="btn btn-primary" disabled>
-                        <i class="fas fa-vial"></i> توليد الأسئلة (قريباً)
+                    <button class="btn btn-primary" onclick="generateMCQ()">
+                        <i class="fas fa-vial"></i> توليد الأسئلة
                     </button>
                 </div>
             </div>
@@ -104,48 +100,45 @@
                 <p>قم برفع صورة للسؤال وسيقوم النظام بتحليلها وحلها فوراً.</p>
                 <div class="input-area" style="border: 2px dashed #334155; padding: 40px; text-align: center; border-radius: 12px;">
                     <i class="fas fa-image fa-3x" style="color: #10b981; margin-bottom: 15px;"></i>
-                    <p>ميزة التعرف البصري (Vision AI) قيد التطوير</p>
+                    <p>ميزة التعرف البصري (Vision AI) قيد التجربة</p>
                 </div>
             </div>
         </div>
 
         <div id="loader" style="display:none; margin-top:20px; text-align:center;">
-            <i class="fas fa-spinner fa-spin"></i> جاري التحليل والمعالجة باستخدام الذكاء الاصطناعي...
+            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary);"></i>
+            <p>جاري التحليل العميق والمعالجة... قد يستغرق ذلك دقيقة للتقارير الطويلة</p>
         </div>
 
         <div id="reportWrapper">
             <div id="outputContent"></div>
-            <div class="citation-box" id="citationArea">
-                <strong><i class="fas fa-book"></i> المراجع الموثقة:</strong>
-                <div id="citations"></div>
-            </div>
         </div>
     </main>
 
     <footer style="text-align: center; color: #555; font-size: 12px; padding: 20px; font-family: sans-serif;">
-        Developed by <strong>Eng Reda</strong>
+        Developed by <strong>Eng Reda</strong> | AcademiX AI 2026
     </footer>
 
-    <script src="/static/script.js"></script>
+    <script src="/script.js"></script>
 
     <script>
         function showSection(sectionId) {
-            // إخفاء كافة الحاويات
             document.querySelectorAll('.section-container').forEach(sec => {
                 sec.style.display = 'none';
             });
-            
-            // إزالة التنشيط من كافة أزرار القائمة
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
-            // إظهار الحاوية المطلوبة وتنشيط الزر
             document.getElementById(sectionId).style.display = 'block';
             event.currentTarget.classList.add('active');
-            
-            // تنظيف منطقة النتائج عند الانتقال
             document.getElementById('reportWrapper').style.display = 'none';
+        }
+
+        function handleFileUpload(input) {
+            const fileName = input.files[0] ? input.files[0].name : "اضغط هنا لاختيار ملف PDF من جهازك";
+            document.getElementById('fileName').innerText = "تم اختيار: " + fileName;
+            // استدعاء دالة التلخيص من ملف script.js
+            summarizePDF(); 
         }
     </script>
 </body>
