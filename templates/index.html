@@ -60,9 +60,6 @@
                     <button class="btn btn-primary" onclick="generateReport()">
                         <i class="fas fa-rocket"></i> توليد التقرير (+10)
                     </button>
-                    <button id="pdfBtnReport" class="btn btn-primary" style="display:none; background: #2ecc71;" onclick="exportToPDF()">
-                        <i class="fas fa-download"></i> حفظ ملف PDF
-                    </button>
                 </div>
             </div>
         </div>
@@ -70,8 +67,11 @@
         <div id="pdfSection" class="section-container" style="display:none;">
             <div class="glass-card">
                 <h2><i class="fas fa-file-alt" style="color: var(--secondary)"></i> تلخيص المحاضرات الذكي</h2>
-                <p>ارفع ملفك وسأقوم بتحليله وتلخيصه بلغتين (عربي - إنجليزي).</p>
-                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed var(--primary); padding: 30px; border-radius: 15px; text-align: center;" onclick="document.getElementById('pdfUpload').click()">
+                <p>ارفع ملفك وسأقوم بتحليله وتلخيصه بلغتين (عربي - إنجليزي) بشكل مفصل.</p>
+                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed var(--primary); padding: 30px; border-radius: 15px; text-align: center; transition: 0.3s;" 
+                     onclick="document.getElementById('pdfUpload').click()"
+                     onmouseover="this.style.background='rgba(79, 172, 254, 0.05)'"
+                     onmouseout="this.style.background='transparent'">
                     <input type="file" id="pdfUpload" accept=".pdf" style="display: none;" onchange="handleFileUpload(this)">
                     <i class="fas fa-cloud-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
                     <p id="fileName" style="margin:0; color: var(--text-dim);">اسحب الملف هنا أو اضغط للاختيار</p>
@@ -85,31 +85,38 @@
                 <div class="input-area">
                     <textarea id="mcqInput" placeholder="أدخل النص لتوليد الأسئلة..."></textarea>
                 </div>
-                <button class="btn btn-primary" onclick="alert('قيد التطوير...')">إنشاء الاختبار</button>
+                <button class="btn btn-primary" onclick="alert('هذه الميزة ستتوفر في التحديث القادم!')">إنشاء الاختبار</button>
              </div>
         </div>
 
         <div id="imageSection" class="section-container" style="display:none;">
              <div class="glass-card" style="text-align: center;">
                 <h2><i class="fas fa-eye"></i> حل الصور</h2>
-                <p>الميزة قيد التفعيل النهائي...</p>
+                <p>جاري العمل على ربط ميزة رؤية الحاسوب (Computer Vision)...</p>
              </div>
         </div>
 
         <div id="loader" style="display:none; width: 100%; text-align: center; margin-top: 40px; padding: 20px;">
             <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary);"></i>
-            <p style="margin-top: 15px; font-weight: bold; color: var(--secondary);">جاري المعالجة الأكاديمية... يرجى الانتظار</p>
+            <p style="margin-top: 15px; font-weight: bold; color: var(--secondary);">جاري المعالجة الأكاديمية العميقة... يرجى الانتظار</p>
         </div>
 
-        <div id="reportWrapper">
-            <div id="outputContent"></div>
+        <div id="resultArea" style="width:100%; display: flex; flex-direction: column; align-items: center;">
+            <button id="pdfBtnReport" class="btn btn-primary" style="display:none; background: #27ae60; margin-bottom: 20px; width: auto;" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf"></i> حفظ النتيجة كـ PDF
+            </button>
+
+            <div id="reportWrapper">
+                <div id="outputContent"></div>
+            </div>
         </div>
 
     </main>
 
     <script src="/static/script.js"></script>
+    
     <script>
-        // دالة التنقل بين الأقسام
+        // دالة التنقل بين الأقسام (محسنة)
         function showSection(sectionId, element) {
             document.querySelectorAll('.section-container').forEach(sec => sec.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -117,20 +124,21 @@
             document.getElementById(sectionId).style.display = 'block';
             element.classList.add('active');
             
-            // إخفاء النتائج القديمة عند تغيير القسم
+            // إخفاء النتائج واللودر عند الانتقال لقسم جديد
             document.getElementById('reportWrapper').style.display = 'none';
             document.getElementById('pdfBtnReport').style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
         }
 
         // دالة التعامل مع رفع الملف
         function handleFileUpload(input) {
             if (input.files && input.files[0]) {
-                document.getElementById('fileName').innerText = "جاري رفع: " + input.files[0].name;
-                // استدعاء دالة التلخيص من ملف script.js
+                const fileName = input.files[0].name;
+                document.getElementById('fileName').innerHTML = `<b style="color: var(--secondary)">تم اختيار:</b> ${fileName}`;
+                
+                // التأكد من استدعاء الدالة من script.js
                 if (typeof summarizePDF === "function") {
                     summarizePDF();
-                } else {
-                    console.error("دالة summarizePDF غير موجودة في script.js");
                 }
             }
         }
