@@ -2,10 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcademiX Pro | المنصة الأكاديمية الشاملة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AcademiX Pro | المنصة الأكاديمية العالمية</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@300;500;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="/static/style.css">
@@ -18,28 +18,32 @@
     <aside class="sidebar">
         <div class="logo-area">
             <h2>AcademiX AI</h2>
-            <small>نظام التعليم الذكي</small>
+            <small style="color: var(--text-dim);">الذكاء الأكاديمي المتطور</small>
         </div>
+        
         <nav class="nav-menu">
-            <div class="nav-item active" onclick="showSection('reportSection')">
-                <i class="fas fa-magic"></i> مولد التقارير الأكاديمية
+            <div class="nav-item active" onclick="showSection('reportSection', this)">
+                <i class="fas fa-magic"></i> <span>مولد التقارير</span>
             </div>
-            <div class="nav-item" onclick="showSection('pdfSection')">
-                <i class="fas fa-file-pdf"></i> تلخيص المحاضرات (PDF)
+            <div class="nav-item" onclick="showSection('pdfSection', this)">
+                <i class="fas fa-file-pdf"></i> <span>تلخيص PDF</span>
             </div>
-            <div class="nav-item" onclick="showSection('mcqSection')">
-                <i class="fas fa-tasks"></i> مصنع اختبارات MCQ
+            <div class="nav-item" onclick="showSection('mcqSection', this)">
+                <i class="fas fa-tasks"></i> <span>مصنع MCQ</span>
             </div>
-            <div class="nav-item" onclick="showSection('imageSection')">
-                <i class="fas fa-camera"></i> حل الواجبات بالصور
+            <div class="nav-item" onclick="showSection('imageSection', this)">
+                <i class="fas fa-camera"></i> <span>حل الصور</span>
             </div>
         </nav>
         
         <div class="stats-card">
-            <p style="margin:0; font-weight:bold;">
-                <i class="fas fa-star" style="color:#f59e0b"></i> نقاط الخبرة: <span id="userPoints">120</span>
-            </p>
-            <small>لقب الطالب: <b>باحث ناشئ</b></small>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-award" style="color: var(--accent); font-size: 1.5rem;"></i>
+                <div>
+                    <p style="margin:0; font-weight:bold; font-size: 0.9rem;">النقاط: <span id="userPoints">120</span></p>
+                    <small style="font-size: 0.7rem; opacity: 0.8;">اللقب: باحث ناشئ</small>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -47,19 +51,17 @@
         
         <div id="reportSection" class="section-container">
             <div class="glass-card">
-                <h2><i class="fas fa-magic" style="color: #00f2fe"></i> مولد التقارير الموثقة</h2>
-                <p>أدخل موضوع البحث وسأقوم بتوليده مع المراجع الأكاديمية.</p>
-                
+                <h2><i class="fas fa-pen-nib" style="color: var(--primary)"></i> مولد التقارير الموثقة</h2>
+                <p>نظام توليد أبحاث متكامل مع المراجع الأكاديمية الدقيقة.</p>
                 <div class="input-area">
-                    <textarea id="promptInput" placeholder="مثال: أثر الذكاء الاصطناعي في هندسة البرمجيات..."></textarea>
+                    <textarea id="promptInput" placeholder="اكتب موضوع البحث هنا... مثال: مستقبل الطاقة المتجددة في العراق"></textarea>
                 </div>
-
                 <div class="action-btns">
                     <button class="btn btn-primary" onclick="generateReport()">
-                        <i class="fas fa-bolt"></i> توليد الآن (+10 نقاط)
+                        <i class="fas fa-rocket"></i> توليد التقرير (+10)
                     </button>
                     <button id="pdfBtnReport" class="btn btn-outline" style="display:none;" onclick="exportToPDF()">
-                        <i class="fas fa-file-pdf"></i> تصدير PDF
+                        <i class="fas fa-download"></i> حفظ PDF
                     </button>
                 </div>
             </div>
@@ -67,57 +69,78 @@
 
         <div id="pdfSection" class="section-container" style="display:none;">
             <div class="glass-card">
-                <h2><i class="fas fa-file-upload" style="color: #4facfe"></i> تلخيص ملفات PDF (مزدوج)</h2>
-                <p>ارفع ملف المحاضرة وسيقوم النظام بتلخيصه (إنجليزي + عربي) بشكل مفصل.</p>
-                <div class="pdf-upload-box" onclick="document.getElementById('pdfUpload').click()" style="border: 2px dashed #334155; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer;">
+                <h2><i class="fas fa-file-alt" style="color: var(--secondary)"></i> تلخيص المحاضرات الذكي</h2>
+                <p>ارفع ملفك وسأقوم بتحليله وتلخيصه بلغتين (عربي - إنجليزي).</p>
+                <div class="pdf-upload-box" onclick="document.getElementById('pdfUpload').click()">
                     <input type="file" id="pdfUpload" accept=".pdf" style="display: none;" onchange="handleFileUpload(this)">
-                    <i class="fas fa-cloud-upload-alt fa-3x" style="color: #4facfe; margin-bottom: 15px;"></i>
-                    <p id="fileName">اضغط هنا لاختيار ملف PDF من جهازك</p>
+                    <i class="fas fa-cloud-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
+                    <p id="fileName" style="margin:0;">اسحب الملف هنا أو اضغط للاختيار</p>
                 </div>
-                <div class="action-btns" id="pdfActionArea"></div>
             </div>
         </div>
 
-        <div id="loader" style="display:none; margin-top:20px; text-align:center;">
-            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary);"></i>
-            <p>جاري التحليل العميق والمعالجة... قد يستغرق ذلك دقيقة للتقارير الطويلة</p>
+        <div id="mcqSection" class="section-container" style="display:none;">
+            <div class="glass-card">
+                <h2><i class="fas fa-vial" style="color: var(--accent)"></i> مصنع الاختبارات الذاتية</h2>
+                <p>حوّل أي موضوع إلى مجموعة أسئلة اختبار (MCQ) للتدريب.</p>
+                <div class="input-area">
+                    <textarea id="mcqInput" placeholder="أدخل النص أو الموضوع لتوليد الأسئلة..."></textarea>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-primary" onclick="generateMCQ()">
+                        <i class="fas fa-puzzle-piece"></i> إنشاء الاختبار
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="imageSection" class="section-container" style="display:none;">
+            <div class="glass-card" style="text-align: center;">
+                <h2><i class="fas fa-eye" style="color: var(--success)"></i> حل الواجبات بالصور</h2>
+                <div style="padding: 40px; border: 2px dashed rgba(255,255,255,0.1); border-radius: 20px;">
+                    <i class="fas fa-robot fa-4x" style="opacity: 0.2; margin-bottom: 20px;"></i>
+                    <p>ميزة تحليل الصور (Vision AI) قيد التفعيل النهائي...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="loader" style="display:none; width: 100%; text-align: center; margin-top: 40px;">
+            <div class="spinner-box">
+                <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary);"></i>
+                <p style="margin-top: 15px; font-weight: bold; letter-spacing: 1px;">جاري المعالجة الذكية...</p>
+            </div>
         </div>
 
         <div id="reportWrapper">
             <div id="outputContent"></div>
         </div>
+
     </main>
 
-    <footer style="text-align: center; color: #555; font-size: 12px; padding: 20px; font-family: sans-serif;">
-        Developed by <strong>Eng Reda</strong> | AcademiX AI 2026
+    <footer style="margin-top: auto; padding: 20px; text-align: center; opacity: 0.5; font-size: 0.8rem;">
+        AcademiX AI Global System © 2026 | Developed by Eng Reda
     </footer>
 
     <script src="/static/script.js"></script>
-
     <script>
-        function showSection(sectionId) {
-            document.querySelectorAll('.section-container').forEach(sec => {
-                sec.style.display = 'none';
-            });
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
+        function showSection(sectionId, element) {
+            // إخفاء كل الأقسام
+            document.querySelectorAll('.section-container').forEach(sec => sec.style.display = 'none');
+            // إزالة الـ active من كل الأزرار
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            // إظهار القسم المختار
             document.getElementById(sectionId).style.display = 'block';
-            if(event) event.currentTarget.classList.add('active');
+            element.classList.add('active');
+            
+            // إخفاء منطقة النتائج عند التنقل
             document.getElementById('reportWrapper').style.display = 'none';
         }
 
         function handleFileUpload(input) {
             if (input.files && input.files[0]) {
-                const fileName = input.files[0].name;
-                document.getElementById('fileName').innerText = "تم اختيار: " + fileName;
-                // تأكد من أن الدالة في script.js اسمها يتطابق مع المستدعى هنا
-                if (typeof summarizePDF === "function") {
-                    summarizePDF();
-                } else {
-                    // إذا كان السكربت يستخدم Listener لـ change كما في الكود السابق، فلا داعي لاستدعاء دالة يدوياً
-                    console.log("الملف جاهز للرفع عبر الـ Listener");
-                }
+                document.getElementById('fileName').innerText = "تم تحميل: " + input.files[0].name;
+                if (typeof summarizePDF === "function") summarizePDF();
             }
         }
     </script>
