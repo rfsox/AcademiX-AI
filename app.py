@@ -8,14 +8,21 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
+# جلب المفتاح من إعدادات Vercel - تأكد من إضافته هناك
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def extract_content(file):
+# الموديلات المستقرة
+MODEL_QUICK = "llama-3.1-8b-instant"   # سريع جداً للأسئلة والملخص لمنع التوقف
+MODEL_POWER = "llama-3.3-70b-versatile" # قوي جداً للتقارير الطويلة
+
+def extract_text(file):
+    """دالة استخراج النص من الـ PDF مع تحديد عدد الصفحات للسرعة"""
     text = ""
     try:
         file.seek(0)
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            for page in pdf.pages[:20]: # يقرأ حتى 20 صفحة
+            # نكتفي بأول 15 صفحة لضمان بقاء المعالجة ضمن وقت Vercel المسموح
+            for page in pdf.pages[:15]:
                 content = page.extract_text()
                 if content: text += content + "\n"
     except: pass
@@ -25,37 +32,73 @@ def extract_content(file):
 def index():
     return render_template('index.html')
 
+@app.route('/generate', methods=['POST'])
+def generate_report():
+    """توليد تقرير أكاديمي مفصل"""
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt', '')
+        
+        completion = client.chat.completions.create(
+            model=MODEL_POWER,
+            messages=[
+                {"role": "system", "content": "أنت خبير أكاديمي. اكتب تقريراً مفصلاً جداً باللغة العربية مع المصطلحات الإنجليزية."},
+                {"role": "user", "content": f"اكتب بحثاً شاملاً عن: {prompt}"}
+            ],
+            max_tokens=800, # التوكن المطلوب للاستقرار
+            temperature=0.6
+        )
+        return jsonify({'report': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'report': str(e)}), 500
+
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
+    """ملخص وتنظيم لغات (إنجليزي أولاً ثم عربي)"""
     try:
-        raw_text = extract_content(request.files['file'])
+        text = extract_text(request.files['file'])
+        if not text: return jsonify({'summary': "لم يتم العثور على نص"}), 400
+
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=MODEL_QUICK,
             messages=[
-                {"role": "system", "content": "أنت خبير أكاديمي. لخص النص بأسلوب فقرات: الإنجليزية أولاً ثم ترجمتها العربية تحتها مباشرة. استخدم 7000 توكن للشرح الوافي."},
-                {"role": "user", "content": f"لخص هذا المنهج بدقة:\n\n{raw_text[:15000]}"}
+                {"role": "system", "content": """أنت خبير تلخيص. 
+                نظم الإجابة كالتالي: 
+                - الفقرة باللغة الإنجليزية أولاً بالكامل.
+                - الترجمة العربية تحتها مباشرة.
+                استخدم توكن 800 للشرح."""},
+                {"role": "user", "content": f"لخص هذا المنهج:\n\n{text[:8000]}"}
             ],
-            max_tokens=7000
+            max_tokens=800
         )
         return jsonify({'summary': completion.choices[0].message.content})
-    except Exception as e: return jsonify({'summary': str(e)}), 500
+    except Exception as e:
+        return jsonify({'summary': str(e)}), 500
 
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
+    """توليد أسئلة MCQ مرتبة ومنظمة"""
     try:
-        raw_text = extract_content(request.files['file'])
+        text = extract_text(request.files['file'])
+        if not text: return jsonify({'error': "الملف فارغ"}), 400
+
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant", # سريع جداً لمنع الـ Timeout
+            model=MODEL_QUICK,
             messages=[
-                {"role": "system", "content": """أنشئ أسئلة MCQ شاملة لكل المنهج. 
+                {"role": "system", "content": """أنشئ أسئلة MCQ مترجمة.
                 التنسيق: 
-                EN: [Question]
-                AR: [السؤال]
-                A) [Option EN] / [الترجمة العربية]
-                Answer: [Correct Option]"""},
-                {"role": "user", "content": f"أنشئ أسئلة من هذا النص:\n\n{raw_text[:12000]}"}
+                1. السؤال بالإنجليزية.
+                2. السؤال بالعربية.
+                3. الخيارات (A, B, C, D) باللغتين.
+                4. الجواب الصحيح."""},
+                {"role": "user", "content": f"أنشئ أسئلة من المنهج:\n\n{text[:8000]}"}
             ],
-            max_tokens=7000
+            max_tokens=800,
+            temperature=0.3
         )
         return jsonify({'questions': completion.choices[0].message.content})
-    except Exception as e: return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
