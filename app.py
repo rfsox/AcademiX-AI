@@ -5,23 +5,21 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
 CORS(app)
 
-# جلب المفتاح - تأكد من وضعه في Vercel Dashboard
-API_KEY = os.environ.get("GROQ_API_KEY")
-client = Groq(api_key=API_KEY)
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# استخدام أسرع موديل لمنع الـ Timeout (الخطأ 500)
-MODEL_FAST = "llama-3.1-8b-instant"
+# استخدام الموديل الأقوى لضمان عدم ترك أي معلومة في المنهج
+MODEL_NAME = "llama-3.3-70b-versatile"
 
-def extract_text(file):
+def extract_all_text(file):
     text = ""
     try:
         file.seek(0)
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            # نكتفي بأول 5 صفحات لضمان سرعة خرافية
-            for page in pdf.pages[:5]:
+            # يقرأ حتى 40 صفحة لضمان تغطية المنهج كاملاً
+            for page in pdf.pages[:40]:
                 content = page.extract_text()
                 if content: text += content + "\n"
     except: pass
@@ -31,47 +29,51 @@ def extract_text(file):
 def index():
     return render_template('index.html')
 
-@app.route('/generate_mcq', methods=['POST'])
-def generate_mcq():
-    try:
-        raw_text = extract_text(request.files['file'])
-        if not raw_text: 
-            return jsonify({'error': "الملف فارغ أو غير مدعوم"}), 400
-
-        # نطلب 5 أسئلة فقط لضمان وصول الرد في أقل من 3 ثوانٍ
-        completion = client.chat.completions.create(
-            model=MODEL_FAST,
-            messages=[
-                {"role": "system", "content": """أنت خبير أسئلة سريع. أنشئ 5 أسئلة MCQ مترجمة.
-                التنسيق:
-                EN: Question?
-                AR: السؤال بالعربي؟
-                A) Option EN / الترجمة
-                Answer: [الخيار]"""},
-                {"role": "user", "content": f"أنشئ 5 أسئلة من هذا النص:\n\n{raw_text[:5000]}"}
-            ],
-            max_tokens=1000,
-            temperature=0.2
-        )
-        return jsonify({'questions': completion.choices[0].message.content})
-    except Exception as e:
-        return jsonify({'error': "السيرفر مشغول، حاول مرة أخرى"}), 500
-
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
-        raw_text = extract_text(request.files['file'])
+        raw_text = extract_all_text(request.files['file'])
         completion = client.chat.completions.create(
-            model=MODEL_FAST,
+            model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "اشرح النص باختصار وترجمة واضحة."},
-                {"role": "user", "content": f"لخص هذا النص:\n\n{raw_text[:5000]}"}
+                {"role": "system", "content": """أنت خبير أكاديمي. قدم ملخصاً شاملاً للمنهج.
+                يجب أن يكون نظام التلخيص كالتالي:
+                1. الفقرة باللغة الإنجليزية أولاً بالكامل.
+                2. ثم ترجمتها العربية الدقيقة تحتها مباشرة.
+                استخدم العناوين الواضحة (Heading) لكل قسم."""},
+                {"role": "user", "content": f"لخص هذا المنهج بدقة عالية ولا تترك تفاصيل:\n\n{raw_text[:15000]}"}
             ],
-            max_tokens=1000
+            max_tokens=7000,
+            temperature=0.5
         )
         return jsonify({'summary': completion.choices[0].message.content})
-    except:
-        return jsonify({'summary': "حدث خطأ في التلخيص"}), 500
+    except Exception as e:
+        return jsonify({'summary': f"Error: {str(e)}"}), 500
+
+@app.route('/generate_mcq', methods=['POST'])
+def generate_mcq():
+    try:
+        raw_text = extract_all_text(request.files['file'])
+        # نطلب عدد كبير من الأسئلة لتغطية كل المنهج
+        completion = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": """أنت خبير في وضع الأسئلة الوزارية. 
+                استخرج بنك أسئلة ضخم (أكبر عدد ممكن) يغطي كل تفاصيل النص المرفق.
+                نظام التنسيق الإلزامي لمنع التداخل:
+                - السؤال بالإنجليزية أولاً.
+                - السؤال بالعربية ثانياً.
+                - الخيارات: (A, B, C, D) بالإنجليزية وتحتها ترجمتها بالعربية.
+                - ضع مفتاح الحل في النهاية.
+                ملاحظة: لا تترك أي ورقة في المنهج دون سؤال."""},
+                {"role": "user", "content": f"أنشئ أسئلة MCQ شاملة جداً لهذا المنهج:\n\n{raw_text[:18000]}"}
+            ],
+            max_tokens=7000,
+            temperature=0.3
+        )
+        return jsonify({'questions': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
