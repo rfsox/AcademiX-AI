@@ -11,7 +11,7 @@
     --white: #ffffff;
 }
 
-/* تحسين الخطوط والتنسيق العام */
+/* التنسيق العام */
 body {
     font-family: 'Cairo', 'Tajawal', sans-serif;
     background-color: var(--bg-dark);
@@ -63,14 +63,6 @@ body {
     transform: translateX(-5px);
 }
 
-.stats-card {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid var(--accent);
-    padding: 15px;
-    border-radius: 12px;
-    margin-top: 20px;
-}
-
 /* المحتوى الرئيسي */
 .main-content {
     margin-right: 260px;
@@ -86,6 +78,7 @@ body {
     padding: 30px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 20px;
 }
 
 .input-area textarea {
@@ -101,9 +94,23 @@ body {
     font-family: inherit;
     transition: border 0.3s;
 }
-.input-area textarea:focus { border-color: var(--primary); outline: none; }
 
-/* منطقة النتائج - محسنة للقراءة الطويلة والمزدوجة */
+/* تحسين شكل الـ PDF Upload Box */
+.pdf-upload-box {
+    border: 2px dashed #334155;
+    padding: 40px;
+    text-align: center;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    background: rgba(15, 23, 42, 0.5);
+}
+.pdf-upload-box:hover {
+    border-color: var(--primary);
+    background: rgba(79, 172, 254, 0.1);
+}
+
+/* منطقة النتائج - محسنة جداً */
 #reportWrapper { 
     background: var(--white); 
     color: #1e293b; 
@@ -113,82 +120,63 @@ body {
     display: none; 
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     line-height: 1.8;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
-/* تنسيق "خبط" اللغات داخل التقرير */
-#outputContent h1, #outputContent h2, #outputContent h3 {
-    color: #0f172a;
-    border-bottom: 2px solid var(--primary);
-    padding-bottom: 10px;
-    margin-top: 30px;
-}
-
-/* تمييز النص الإنجليزي عن العربي */
+/* تنسيق النصوص داخل النتيجة */
 #outputContent strong {
-    color: #2563eb; /* أزرق غامق للأهمية */
-    display: block; /* لتبدأ النقطة الإنجليزية في سطر منفصل */
+    color: #2563eb;
+    display: block;
     margin-top: 15px;
+    font-size: 1.2rem;
 }
 
-#outputContent p {
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-}
-
-/* تنسيق الترجمة العربية (التي تكون بين قوسين غالباً) */
 #outputContent em, #outputContent i {
     color: #475569;
     font-style: normal;
     display: block;
     padding-right: 15px;
-    border-right: 3px solid var(--accent);
+    border-right: 4px solid var(--accent);
     background: #f8fafc;
-    margin-bottom: 20px;
+    margin: 10px 0 20px 0;
 }
 
 /* الأزرار */
-.action-btns { 
-    display: flex; 
-    gap: 12px; 
-    margin-top: 20px; 
-}
-
 .btn { 
     padding: 12px 25px;
     border-radius: 10px; 
     border: none; 
     cursor: pointer; 
     font-weight: bold;
-    display: flex; 
+    display: inline-flex; 
     align-items: center; 
-    justify-content: center;
     gap: 8px;
     transition: 0.3s;
 }
 .btn-primary { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: #0f172a; }
 .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
-.btn-success { background: var(--success); color: white; }
-.btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
-/* الطباعة - مهم جداً لحفظ الـ PDF */
-@media print {
-    #reportWrapper {
-        box-shadow: none !important;
-        margin: 0 !important;
-        width: 100% !important;
-        max-width: none !important;
-    }
-    .sidebar, .action-btns, .glass-card { display: none !important; }
+/* اللودر */
+#loader {
+    padding: 20px;
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 12px;
+    margin-top: 20px;
 }
 
-/* تعديلات الموبايل */
+/* التجاوب مع الموبايل */
 @media (max-width: 768px) {
-    .sidebar { position: relative; width: 100%; height: auto; border-left: none; }
-    .main-content { margin-right: 0; padding: 15px; }
-    .nav-menu { display: flex; overflow-x: auto; gap: 10px; }
-    .nav-item { white-space: nowrap; margin-bottom: 0; }
-    .action-btns { flex-direction: column; }
+    .sidebar { 
+        position: fixed; 
+        bottom: 0; 
+        width: 100%; 
+        height: 70px; 
+        flex-direction: row; 
+        padding: 5px; 
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .logo-area, .stats-card, .nav-item span { display: none; }
+    .nav-menu { flex-direction: row; justify-content: space-around; width: 100%; }
+    .nav-item { margin-bottom: 0; padding: 10px; font-size: 1.5rem; }
+    .main-content { margin-right: 0; padding: 20px; padding-bottom: 100px; }
 }
