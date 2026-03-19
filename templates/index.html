@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@300;500;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/static/style.css">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -74,34 +74,7 @@
                     <i class="fas fa-cloud-upload-alt fa-3x" style="color: #4facfe; margin-bottom: 15px;"></i>
                     <p id="fileName">اضغط هنا لاختيار ملف PDF من جهازك</p>
                 </div>
-                <div class="action-btns" id="pdfActionArea">
-                    </div>
-            </div>
-        </div>
-
-        <div id="mcqSection" class="section-container" style="display:none;">
-            <div class="glass-card">
-                <h2><i class="fas fa-graduation-cap" style="color: #f59e0b"></i> مصنع اختبارات MCQ</h2>
-                <p>اكتب موضوعاً وسأحول لك المفاهيم الأساسية إلى أسئلة اختبار تدريبية.</p>
-                <div class="input-area">
-                    <textarea id="mcqInput" placeholder="مثال: أساسيات الشبكات، علم النفس التربوي..."></textarea>
-                </div>
-                <div class="action-btns">
-                    <button class="btn btn-primary" onclick="generateMCQ()">
-                        <i class="fas fa-vial"></i> توليد الأسئلة
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="imageSection" class="section-container" style="display:none;">
-            <div class="glass-card">
-                <h2><i class="fas fa-camera" style="color: #10b981"></i> حل الواجبات بالصور</h2>
-                <p>قم برفع صورة للسؤال وسيقوم النظام بتحليلها وحلها فوراً.</p>
-                <div class="input-area" style="border: 2px dashed #334155; padding: 40px; text-align: center; border-radius: 12px;">
-                    <i class="fas fa-image fa-3x" style="color: #10b981; margin-bottom: 15px;"></i>
-                    <p>ميزة التعرف البصري (Vision AI) قيد التجربة</p>
-                </div>
+                <div class="action-btns" id="pdfActionArea"></div>
             </div>
         </div>
 
@@ -119,7 +92,7 @@
         Developed by <strong>Eng Reda</strong> | AcademiX AI 2026
     </footer>
 
-    <script src="/script.js"></script>
+    <script src="/static/script.js"></script>
 
     <script>
         function showSection(sectionId) {
@@ -130,15 +103,22 @@
                 item.classList.remove('active');
             });
             document.getElementById(sectionId).style.display = 'block';
-            event.currentTarget.classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
             document.getElementById('reportWrapper').style.display = 'none';
         }
 
         function handleFileUpload(input) {
-            const fileName = input.files[0] ? input.files[0].name : "اضغط هنا لاختيار ملف PDF من جهازك";
-            document.getElementById('fileName').innerText = "تم اختيار: " + fileName;
-            // استدعاء دالة التلخيص من ملف script.js
-            summarizePDF(); 
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                document.getElementById('fileName').innerText = "تم اختيار: " + fileName;
+                // تأكد من أن الدالة في script.js اسمها يتطابق مع المستدعى هنا
+                if (typeof summarizePDF === "function") {
+                    summarizePDF();
+                } else {
+                    // إذا كان السكربت يستخدم Listener لـ change كما في الكود السابق، فلا داعي لاستدعاء دالة يدوياً
+                    console.log("الملف جاهز للرفع عبر الـ Listener");
+                }
+            }
         }
     </script>
 </body>
