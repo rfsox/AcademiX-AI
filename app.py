@@ -1,31 +1,30 @@
 import os
 import io
-import pdfplumber 
+import pdfplumber
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-# مكتبات اختيارية لإصلاح ترتيب النصوص العربية إذا استخرجت مقلوبة
+# مكتبات اختيارية لمعالجة النص العربي المقلوب في ملفات PDF
 try:
     import arabic_reshaper
     from bidi.algorithm import get_display
-    HAS_ARABIC_FIX = True
+    HAS_ARABIC_TOOLS = True
 except ImportError:
-    HAS_ARABIC_FIX = False
+    HAS_ARABIC_TOOLS = False
 
 app = Flask(__name__)
 CORS(app)
 
-# إعداد عميل Groq
+# جلب مفتاح الأي بي آي
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
-def process_arabic_pdf_text(text):
-    """دالة لتحسين قراءة النص العربي المستخرج من PDF"""
-    if not text:
-        return ""
-    if HAS_ARABIC_FIX:
-        # هذه الخطوة تحول النص من "س ك ع" إلى "عكس" ليقرأه الذكاء الاصطناعي صح
+def fix_extracted_text(text):
+    """دالة لمعالجة النص العربي لضمان فهمه بشكل صحيح من قبل النموذج"""
+    if not text: return ""
+    if HAS_ARABIC_TOOLS:
+        # إعادة تشكيل الحروف وتصحيح الاتجاه
         reshaped = arabic_reshaper.reshape(text)
         return get_display(reshaped)
     return text
@@ -34,7 +33,7 @@ def process_arabic_pdf_text(text):
 def index():
     return render_template('index.html')
 
-# --- 1. مولد التقارير (تحسين جودة الرد الأكاديمي) ---
+# --- 1. مولد التقارير (محسن لنتائج أطول) ---
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
@@ -49,8 +48,9 @@ def generate():
                 {
                     "role": "system", 
                     "content": (
-                        "أنت بروفيسور أكاديمي خبير. قدم تقريراً شاملاً باللغة العربية بتنسيق Markdown. "
-                        "يجب أن يكون التقرير طويلاً، منظماً بعناوين، ويتضمن مراجع علمية في النهاية."
+                        "أنت بروفيسور وأكاديمي خبير. قدم تقريراً بحثياً شاملاً ومفصلاً جداً باللغة العربية. "
+                        "يجب أن يكون النص طويلاً ويتضمن مقدمة مكثفة، محاور تحليلية عميقة، استنتاجات، وقائمة مراجع. "
+                        "استخدم Markdown لجعله يبدو كبحث مطبوع."
                     )
                 },
                 {"role": "user", "content": prompt}
@@ -60,9 +60,9 @@ def generate():
         )
         return jsonify({'report': completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'report': f"حدث خطأ في النظام: {str(e)}"}), 500
+        return jsonify({'report': f"خطأ في النظام: {str(e)}"}), 500
 
-# --- 2. تلخيص PDF (حل مشكلة النصوص المقلوبة) ---
+# --- 2. تلخيص PDF (تم تحديثه ليكون طويلاً وشاملاً جداً) ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
@@ -72,32 +72,32 @@ def summarize_pdf():
         file = request.files['file']
         extracted_text = ""
         
-        # استخدام pdfplumber لقراءة احترافية
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            max_pages = min(len(pdf.pages), 20) 
+            max_pages = min(len(pdf.pages), 30) # زيادة عدد الصفحات المقروءة
             for page in pdf.pages[:max_pages]:
                 text = page.extract_text()
                 if text:
-                    # تطبيق معالجة النص لضمان فهم الذكاء الاصطناعي للمحتوى العربي
-                    extracted_text += process_arabic_pdf_text(text) + "\n"
+                    # نطبق المعالجة لضمان جودة النص العربي المبعثر
+                    extracted_text += fix_extracted_text(text) + "\n"
 
-        if not extracted_text.strip() or len(extracted_text) < 10:
-            return jsonify({'summary': 'فشل في استخراج نص واضح. قد يكون الملف محمياً أو عبارة عن صور فقط.'})
+        if not extracted_text.strip():
+            return jsonify({'summary': 'نعتذر، لم نتمكن من قراءة النص. تأكد أن الملف ليس صوراً فقط.'})
 
-        # إرسال النص المعالج إلى Groq للتلخيص المزدوج
+        # طلب تلخيص طويل جداً ومزدوج
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system", 
                     "content": (
-                        "أنت مترجم ومحلل أكاديمي. قم بتلخيص النص التالي بأسلوب احترافي. "
-                        "أولاً: قدم ملخصاً تفصيلياً باللغة الإنجليزية داخل وسم <div class='en-text' dir='ltr'>. "
-                        "ثانياً: قدم نفس التلخيص باللغة العربية وبدقة عالية. "
-                        "حافظ على المصطلحات العلمية."
+                        "You are a master academic analyst. Your task is to provide an EXTREMELY DETAILED and LONG summary. "
+                        "1. Breakdown the document into its original sections. "
+                        "2. For each section, provide a comprehensive English analysis inside <div class='en-text' dir='ltr'>. "
+                        "3. Directly follow it with a high-quality, professional Arabic translation. "
+                        "Don't skip any details. The output must be long enough to cover all aspects of the document."
                     )
                 },
-                {"role": "user", "content": f"Summarize this content:\n\n{extracted_text[:18000]}"}
+                {"role": "user", "content": f"Please summarize this document thoroughly:\n\n{extracted_text[:25000]}"}
             ],
             temperature=0.5,
             max_tokens=4000
@@ -106,10 +106,9 @@ def summarize_pdf():
         return jsonify({'summary': completion.choices[0].message.content})
 
     except Exception as e:
-        print(f"Error detail: {e}")
         return jsonify({'summary': f"خطأ تقني: {str(e)}"}), 500
 
-# لضمان العمل على Vercel أو السيرفر المحلي
+# لضمان التشغيل على Vercel
 application = app
 
 if __name__ == '__main__':
