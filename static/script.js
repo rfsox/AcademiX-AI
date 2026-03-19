@@ -1,13 +1,13 @@
 // استهداف العناصر مرة واحدة لضمان الأداء
 const getEl = (id) => document.getElementById(id);
 
-// --- الميزة الأولى: توليد التقارير ---
+// --- الميزة الأولى: توليد التقارير الأكاديمية ---
 async function generateReport() {
     const promptInput = getEl('promptInput');
     const outputContent = getEl('outputContent');
     const reportWrapper = getEl('reportWrapper');
     const loader = getEl('loader');
-    const pdfBtn = getEl('pdfBtn');
+    const pdfBtn = getEl('pdfBtnReport'); // تأكد من الـ ID المحدث في HTML
 
     if (!promptInput.value.trim()) {
         alert("يرجى إدخال موضوع البحث!");
@@ -31,10 +31,7 @@ async function generateReport() {
         const data = await response.json();
         
         if (data.result) {
-            outputContent.style.direction = "rtl";
-            // تحويل Markdown إلى HTML باستخدام مكتبة marked
             outputContent.innerHTML = marked.parse(data.result);
-            
             reportWrapper.style.display = 'block';
             if(pdfBtn) pdfBtn.style.display = 'flex';
             
@@ -44,13 +41,13 @@ async function generateReport() {
         }
     } catch (error) {
         console.error("Error:", error);
-        alert("خطأ في الاتصال بالسيرفر، تأكد من تشغيل app.py");
+        alert("خطأ في الاتصال، تأكد من رفع app.py بشكل صحيح على Vercel");
     } finally {
         loader.style.display = 'none';
     }
 }
 
-// --- الميزة الثانية: رفع وتلخيص PDF ---
+// --- الميزة الثانية: رفع وتلخيص PDF (النسخة العميقة والمزدوجة) ---
 document.addEventListener('DOMContentLoaded', () => {
     const pdfUpload = getEl('pdfUpload');
     
@@ -59,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = this.files[0];
             if (!file) return;
 
-            // التحقق من نوع الملف وحجمه (إضافة أمان)
             if (file.type !== "application/pdf") {
                 alert("يرجى اختيار ملف PDF فقط");
                 return;
@@ -69,59 +65,76 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('file', file);
             
             const loader = getEl('loader');
+            const reportWrapper = getEl('reportWrapper');
+            const output = getEl('outputContent');
+            
+            // تهيئة الواجهة لعملية طويلة
             loader.style.display = 'block';
+            reportWrapper.style.display = 'none';
 
             try {
                 const response = await fetch('/summarize_pdf', {
                     method: 'POST',
-                    body: formData // إرسال كـ FormData
+                    body: formData 
                 });
+
+                if (!response.ok) throw new Error("السيرفر استغرق وقتاً طويلاً أو حدث خطأ");
 
                 const data = await response.json();
                 
                 if (data.result) {
-                    const output = getEl('outputContent');
-                    output.style.direction = "rtl";
+                    // عرض النتيجة (إنجليزي + عربي) مع دعم الـ Markdown
                     output.innerHTML = marked.parse(data.result);
-                    getEl('reportWrapper').style.display = 'block';
-                    if(getEl('pdfBtn')) getEl('pdfBtn').style.display = 'flex';
+                    reportWrapper.style.display = 'block';
                     
-                    updateUserPoints(15);
+                    // إظهار أزرار الحفظ المحدثة
+                    const pdfBtn = getEl('pdfBtnReport');
+                    if(pdfBtn) pdfBtn.style.display = 'flex';
+                    
+                    updateUserPoints(20); // نقاط أكثر للعمليات المعقدة
                 } else {
                     alert("فشل التلخيص: " + data.result);
                 }
             } catch (error) {
                 console.error("Upload Error:", error);
-                alert("حدث خطأ أثناء رفع ومعالجة الملف");
+                alert("حدث خطأ أثناء معالجة الملف العميق. حاول مع ملف أصغر إذا استمر الخطأ.");
             } finally {
                 loader.style.display = 'none';
-                pdfUpload.value = ''; // تصفير الحقل لرفع ملف آخر لاحقاً
+                pdfUpload.value = ''; 
             }
         });
     }
 });
 
-// تحديث النقاط
+// --- وظيفة الحفظ المحدثة (تدعم الملفات الطويلة وتمنع قص الكلام) ---
+function exportToPDF() {
+    const element = getEl('reportWrapper');
+    const pdfBtn = getEl('pdfBtnReport');
+
+    if (!element) return;
+
+    // إخفاء الزر مؤقتاً لكي لا يظهر في الـ PDF
+    if(pdfBtn) pdfBtn.style.display = 'none';
+
+    const opt = {
+        margin:       [0.5, 0.5],
+        filename:     'AcademiX_Summary_2026.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // منع قص الفقرات بين الصفحات
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        if(pdfBtn) pdfBtn.style.display = 'flex';
+    });
+}
+
+// تحديث النقاط في الواجهة
 function updateUserPoints(pts) {
     const p = getEl('userPoints');
     if (p) {
         let currentPoints = parseInt(p.innerText) || 0;
         p.innerText = currentPoints + pts;
     }
-}
-
-// تصدير PDF
-function exportToPDF() {
-    const element = getEl('reportWrapper');
-    if (!element) return;
-
-    const opt = {
-        margin:       0.5,
-        filename:     'AcademiX_Report.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(element).save();
 }
