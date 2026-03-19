@@ -2,425 +2,129 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Academix AI Pro | المساعد الأكاديمي المتطور</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Tajawal:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academix AI Pro | المساعد الأكاديمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        /* =========================================
-           1. المتغيرات والسمات العامة (Professional UI)
-           ========================================= */
-        :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
-            --secondary: #a855f7;
-            --accent: #10b981;
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-main);
-            line-height: 1.6;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
-            min-height: 100vh;
-        }
-
-        /* =========================================
-           2. حل مشكلة تنسيق اللغات (السر هنا)
-           ========================================= */
+        :root { --primary: #6366f1; --bg-dark: #0f172a; --text-main: #f8fafc; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; }
+        
+        /* تنسيق الورقة الأكاديمية لمنع خربشة اللغات */
         #academic-paper-content {
-            direction: ltr; /* الأساس لليسار للأكاديمية */
-            text-align: left;
-            padding: 40px;
-            background: #ffffff;
-            color: #1e293b;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            min-height: 800px;
+            background: white; color: #1e293b; padding: 40px; border-radius: 10px;
+            direction: ltr; text-align: left; /* الأساس يسار للإنجليزي */
         }
 
-        /* تمييز الفقرات العربية داخل المحتوى */
-        .rtl-block {
-            direction: rtl;
-            text-align: right;
-            font-family: 'Cairo', sans-serif;
-            display: block;
-            margin-bottom: 15px;
-            border-right: 3px solid var(--primary);
-            padding-right: 15px;
-        }
+        /* كود سحري: أي فقرة تحتوي عربي تتحول لليمين تلقائياً */
+        .content-block { margin-bottom: 20px; display: block; }
+        .arabic-text { direction: rtl; text-align: right; font-weight: 600; color: #000; display: block; }
+        .english-text { direction: ltr; text-align: left; color: #334155; display: block; margin-bottom: 5px; }
 
-        .ltr-block {
-            direction: ltr;
-            text-align: left;
-            font-family: 'JetBrains Mono', monospace;
-            display: block;
-            margin-bottom: 15px;
-            color: #334155;
-            padding-left: 15px;
-        }
-
-        /* =========================================
-           3. المكونات البصرية (Navigation & Background)
-           ========================================= */
-        .navbar {
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(to right, var(--primary-light), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* =========================================
-           4. واجهة الإدخال (Glassmorphism)
-           ========================================= */
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 3rem;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            margin-top: 2rem;
-        }
-
-        .upload-zone {
-            border: 2px dashed var(--primary-light);
-            border-radius: 20px;
-            padding: 4rem 2rem;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(99, 102, 241, 0.05);
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        .upload-zone:hover {
-            border-color: var(--secondary);
-            background: rgba(168, 85, 247, 0.1);
-            transform: translateY(-5px);
-        }
-
-        .upload-zone i {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .btn-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .main-btn {
-            padding: 1.2rem 2rem;
-            border: none;
-            border-radius: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            font-size: 1.1rem;
-            color: white;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .btn-primary { background: linear-gradient(45deg, var(--primary-dark), var(--primary)); }
-        .btn-secondary { background: linear-gradient(45deg, var(--secondary), #8b5cf6); }
-        .btn-accent { background: linear-gradient(45deg, var(--accent), #059669); }
-
-        .main-btn:hover {
-            transform: scale(1.05);
-            filter: brightness(1.2);
-        }
-
-        /* =========================================
-           5. نظام العرض والنتائج (Academic Paper)
-           ========================================= */
-        #result-wrapper {
-            display: none;
-            margin-top: 3rem;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .control-bar {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 50px;
-        }
-
-        .action-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            background: var(--card-bg);
-            color: white;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .action-btn:hover { background: var(--primary); transform: rotate(15deg); }
-
-        /* =========================================
-           6. شاشات التحميل (Loaders)
-           ========================================= */
-        .loader-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .spinner {
-            width: 80px;
-            height: 80px;
-            border: 8px solid rgba(255,255,255,0.1);
-            border-top: 8px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* =========================================
-           7. التجاوب (Responsive)
-           ========================================= */
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .glass-card { padding: 1.5rem; }
-            .logo span { display: none; }
-            #academic-paper-content { padding: 20px; }
-        }
+        .navbar { padding: 20px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); padding: 40px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        
+        .upload-zone { border: 2px dashed var(--primary); padding: 40px; border-radius: 15px; cursor: pointer; margin-bottom: 30px; }
+        .main-btn { padding: 15px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 10px; font-size: 1rem; color: white; transition: 0.3s; }
+        .btn-primary { background: var(--primary); }
+        .btn-accent { background: #10b981; }
+        
+        #result-wrapper { display: none; margin-top: 30px; }
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        .spinner { width: 50px; height: 50px; border: 5px solid white; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <div class="logo">
-            <i class="fas fa-brain"></i>
-            <span>ACADEMIX <small>AI PRO</small></span>
-        </div>
-        <button class="main-btn btn-secondary" style="padding: 0.6rem 1.2rem;" onclick="resetApp()">
-            <i class="fas fa-plus"></i> ملف جديد
-        </button>
+        <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">ACADEMIX AI</div>
+        <button onclick="location.reload()" class="main-btn" style="background: #334155;">ملف جديد</button>
     </nav>
 
     <div class="container">
-        
-        <div id="input-container">
-            <div class="glass-card">
-                <h1 style="margin-bottom: 1rem; font-weight: 800; font-size: 2.2rem;">حول ملزمتك إلى <span style="color: var(--primary-light);">عبقرية</span></h1>
-                <p style="color: var(--text-dim); margin-bottom: 2.5rem;">ارفع ملف الـ PDF واترك للذكاء الاصطناعي مهمة التلخيص الأكاديمي وصناعة الأسئلة.</p>
-                
+        <div id="input-container" class="glass-card">
+            <h1>المساعد الأكاديمي الذكي</h1>
+            <p>لخص ملزمتك، اصنع أسئلتك، واضمن نجاحك</p>
+            
+            <div class="upload-zone" onclick="document.getElementById('pdf-file').click()">
+                <i class="fas fa-file-pdf fa-3x"></i>
+                <h3 id="file-name">اضغط لرفع الملف (PDF)</h3>
                 <input type="file" id="pdf-file" hidden accept="application/pdf">
-                <div class="upload-zone" onclick="document.getElementById('pdf-file').click()">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3 id="file-name">انقر هنا لرفع ملف PDF المنهجي</h3>
-                    <p style="margin-top: 10px; color: var(--text-dim);">يدعم الملفات الكبيرة (حتى 30 صفحة)</p>
-                </div>
-
-                <div class="btn-group">
-                    <button class="main-btn btn-primary" onclick="processRequest('/summarize_pdf')">
-                        <i class="fas fa-file-alt"></i> شرح وتلخيص شامل
-                    </button>
-                    <button class="main-btn btn-accent" onclick="processRequest('/generate_mcq')">
-                        <i class="fas fa-tasks"></i> توليد بنك أسئلة MCQ
-                    </button>
-                </div>
             </div>
+
+            <button class="main-btn btn-primary" onclick="startProcess('/summarize_pdf')">تلخيص وشرح المنهج</button>
+            <button class="main-btn btn-accent" onclick="startProcess('/generate_mcq')">توليد أسئلة MCQ</button>
         </div>
 
         <div id="result-wrapper">
-            <div class="control-bar">
-                <button class="action-btn" title="تصدير PDF" onclick="exportPDF()"><i class="fas fa-file-pdf"></i></button>
-                <button class="action-btn" title="نسخ النص" onclick="copyResult()"><i class="fas fa-copy"></i></button>
-                <button class="action-btn" title="طباعة" onclick="window.print()"><i class="fas fa-print"></i></button>
+            <div style="margin-bottom: 20px; text-align: center;">
+                <button class="main-btn btn-primary" onclick="exportPDF()"><i class="fas fa-download"></i> تحميل كـ PDF</button>
+                <button class="main-btn btn-accent" onclick="copyText()"><i class="fas fa-copy"></i> نسخ النص</button>
             </div>
-
-            <div id="academic-paper-content">
-                </div>
+            <div id="academic-paper-content"></div>
         </div>
     </div>
 
-    <div class="loader-overlay" id="main-loader">
+    <div class="loader" id="loader">
         <div class="spinner"></div>
-        <h2 style="margin-top: 2rem; letter-spacing: 2px;">جاري معالجة البيانات...</h2>
-        <p style="margin-top: 1rem; color: var(--text-dim);">يتم الآن تحليل المنهج وتوليد محتوى ثنائي اللغة</p>
+        <h2 style="margin-top: 20px;">جاري تحليل المنهج...</h2>
     </div>
 
     <script>
-        // 1. معالجة اسم الملف عند الرفع
-        document.getElementById('pdf-file').addEventListener('change', function(e) {
-            const name = e.target.files[0]?.name || "تم اختيار الملف";
-            document.getElementById('file-name').innerHTML = `<span style="color: var(--accent)">${name}</span>`;
-        });
+        document.getElementById('pdf-file').onchange = function() {
+            document.getElementById('file-name').innerText = this.files[0].name;
+        };
 
-        // 2. الدالة الرئيسية لإرسال الطلب (محمية ضد الـ Timeout)
-        async function processRequest(endpoint) {
-            const fileInput = document.getElementById('pdf-file');
-            if (!fileInput.files[0]) {
-                alert("يرجى اختيار ملف PDF أولاً!");
-                return;
-            }
+        async function startProcess(url) {
+            const file = document.getElementById('pdf-file').files[0];
+            if(!file) return alert("ارفع الملف أولاً!");
 
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            const fd = new FormData();
+            fd.append('file', file);
 
-            showLoader(true);
+            document.getElementById('loader').style.display = 'flex';
 
             try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('فشل في الاتصال بالسيرفر');
-
-                const data = await response.json();
-                
-                // تحديد أي حقل نعرض بناءً على الطلب
-                const content = data.summary || data.questions || data.report || data.error;
-                renderAcademicContent(content);
-
-            } catch (error) {
-                alert("حدث خطأ: " + error.message + "\nتأكد من إعدادات Vercel و Groq Key.");
+                const res = await fetch(url, { method: 'POST', body: fd });
+                const data = await res.json();
+                renderContent(data.summary || data.questions);
+            } catch (e) {
+                alert("حدث خطأ في السيرفر، حاول مرة أخرى.");
             } finally {
-                showLoader(false);
+                document.getElementById('loader').style.display = 'none';
             }
         }
 
-        // 3. محرك الرندرة (الذي يحل مشكلة الإنجليزي والعربي)
-        function renderAcademicContent(markdownText) {
+        function renderContent(text) {
             const container = document.getElementById('academic-paper-content');
-            
-            // تحويل الـ Markdown إلى HTML أساسي
-            const rawHtml = marked.parse(markdownText);
-            
-            // تقسيم المحتوى إلى بلوكات ومعالجة اتجاه اللغة لكل بلوك
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = rawHtml;
-            
-            let finalHtml = "";
-            tempDiv.childNodes.forEach(node => {
-                if (node.nodeName === "#text" && node.textContent.trim() === "") return;
-                
-                const text = node.textContent || "";
-                // فحص إذا كان النص يحتوي على حروف عربية
-                const hasArabic = /[\u0600-\u06FF]/.test(text);
-                
-                if (hasArabic) {
-                    finalHtml += `<div class="rtl-block">${node.outerHTML || node.textContent}</div>`;
-                } else {
-                    finalHtml += `<div class="ltr-block">${node.outerHTML || node.textContent}</div>`;
-                }
+            const lines = text.split('\n');
+            let html = "";
+
+            lines.forEach(line => {
+                if(line.trim() === "") return;
+                const isArabic = /[\u0600-\u06FF]/.test(line);
+                html += `<span class="${isArabic ? 'arabic-text' : 'english-text'}">${line}</span>`;
             });
 
-            container.innerHTML = `
-                <div style="text-align: center; border-bottom: 2px solid #334155; margin-bottom: 30px; padding-bottom: 20px;">
-                    <h1 style="color: #1e293b; font-size: 2.5rem;">Academic Report / تقرير أكاديمي</h1>
-                    <p style="color: #64748b;">Generated by Academix AI Pro v2.0</p>
-                </div>
-                ${finalHtml}
-            `;
-
+            container.innerHTML = html;
             document.getElementById('input-container').style.display = 'none';
             document.getElementById('result-wrapper').style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // 4. وظائف المساعدة
-        function showLoader(s) {
-            document.getElementById('main-loader').style.display = s ? 'flex' : 'none';
-        }
-
-        function resetApp() {
-            location.reload();
-        }
-
-        function copyResult() {
-            const text = document.getElementById('academic-paper-content').innerText;
-            navigator.clipboard.writeText(text).then(() => alert("✅ تم نسخ النص بنجاح!"));
         }
 
         function exportPDF() {
             const element = document.getElementById('academic-paper-content');
-            const opt = {
-                margin: 0.5,
-                filename: 'Academix_Study_Material.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().from(element).save('Academix_Report.pdf');
+        }
+
+        function copyText() {
+            const text = document.getElementById('academic-paper-content').innerText;
+            navigator.clipboard.writeText(text);
+            alert("تم النسخ!");
         }
     </script>
 </body>
