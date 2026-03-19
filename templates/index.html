@@ -3,203 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcademiX-AI | المساعد الأكاديمي الذكي</title>
+    <title>AcademiX-AI | المساعد الأكاديمي الاحترافي</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --sidebar-width: 260px;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f4f7f6;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar Styling */
-        #sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            right: 0;
-            top: 0;
-            background: var(--primary-color);
-            color: white;
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #3e4f5f; text-align: center; }
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: #333; }
         
-        .nav-link {
-            color: #bdc3c7;
-            padding: 15px 20px;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: var(--accent-color);
-            color: white;
-        }
+        /* Sidebar */
+        #sidebar { width: 260px; height: 100vh; position: fixed; right: 0; background: var(--primary); color: white; transition: 0.3s; z-index: 1000; }
+        .nav-link { color: #bdc3c7; padding: 15px; border-bottom: 1px solid #34495e; transition: 0.3s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: var(--accent); color: white; }
 
         /* Main Content */
-        #content {
-            margin-right: var(--sidebar-width);
-            padding: 30px;
-            transition: all 0.3s;
-        }
-
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-
-        .result-area {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            min-height: 200px;
-            border-right: 4px solid var(--accent-color);
-        }
-
-        /* Loading Spinner */
-        .loader {
-            display: none;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--accent-color);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 10px auto;
-        }
-
+        #content { margin-right: 260px; padding: 40px; transition: 0.3s; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); background: white; }
+        
+        /* Result Box */
+        .result-container { position: relative; background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 25px; min-height: 300px; margin-top: 20px; line-height: 1.8; }
+        .action-buttons { position: absolute; top: 10px; left: 10px; display: flex; gap: 10px; }
+        
+        /* Loader */
+        .loader { display: none; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
-            #sidebar { right: -100%; }
+            #sidebar { right: -260px; }
             #sidebar.active { right: 0; }
             #content { margin-right: 0; }
-            #sidebarCollapse { display: block !important; }
         }
     </style>
 </head>
 <body>
 
     <nav id="sidebar">
-        <div class="sidebar-header">
-            <h3>AcademiX <span class="text-info">AI</span></h3>
-            <small>المساعد الأكاديمي الاحترافي</small>
+        <div class="p-4 text-center border-bottom border-secondary">
+            <h3 class="fw-bold">AcademiX <span class="text-info">AI</span></h3>
         </div>
-        <ul class="nav flex-column mt-3">
-            <li class="nav-item"><a href="#" class="nav-link active" onclick="showSection('research')"><i class="fas fa-microscope"></i> توليد البحوث</a></li>
-            <li class="nav-item"><a href="#" class="nav-link" onclick="showSection('summary')"><i class="fas fa-compress-alt"></i> تلخيص النصوص</a></li>
-            <li class="nav-item"><a href="#" class="nav-link" onclick="showSection('translate')"><i class="fas fa-language"></i> الترجمة الأكاديمية</a></li>
-            <li class="nav-item"><a href="#" class="nav-link" onclick="showSection('chat')"><i class="fas fa-robot"></i> دردشة ذكية</a></li>
-        </ul>
+        <div class="nav flex-column mt-2">
+            <div class="nav-link active" onclick="showSection('research')"><i class="fas fa-book-open me-2"></i> توليد البحوث</div>
+            <div class="nav-link" onclick="showSection('summary')"><i class="fas fa-file-alt me-2"></i> تلخيص النصوص</div>
+            <div class="nav-link" onclick="showSection('translate')"><i class="fas fa-language me-2"></i> الترجمة الأكاديمية</div>
+        </div>
     </nav>
 
     <div id="content">
-        <button type="button" id="sidebarCollapse" class="btn btn-dark d-none mb-3">
-            <i class="fas fa-bars"></i>
-        </button>
+        <button class="btn btn-outline-dark d-md-none mb-3" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
         <section id="research-section" class="app-section">
             <div class="card p-4">
-                <h4><i class="fas fa-pen-nib text-primary"></i> توليد بحث أكاديمي</h4>
-                <div class="input-group mb-3 mt-3">
-                    <input type="text" id="research-topic" class="form-control" placeholder="أدخل عنوان البحث أو الموضوع...">
-                    <button class="btn btn-primary" onclick="handleAction('research')">توليد البحث</button>
+                <h4 class="mb-4 text-primary"><i class="fas fa-magic"></i> محرك توليد البحوث الذكي</h4>
+                <div class="input-group mb-3">
+                    <input type="text" id="research-topic" class="form-control form-control-lg" placeholder="اكتب موضوع البحث هنا (مثلاً: أثر الذكاء الاصطناعي في التعليم)">
+                    <button class="btn btn-primary px-4" onclick="process('research')">توليد البحث</button>
                 </div>
-                <div class="loader" id="loader-research"></div>
-                <div id="research-result" class="result-area mt-3">النتيجة ستظهر هنا...</div>
+                
+                <div class="loader" id="loader"></div>
+
+                <div class="result-container" id="printable-area">
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyContent()" title="نسخ"><i class="fas fa-copy"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="downloadPDF()" title="حفظ PDF"><i class="fas fa-file-pdf"></i></button>
+                    </div>
+                    <div id="output-content">النتيجة ستظهر هنا...</div>
+                </div>
             </div>
         </section>
+    </div>
 
-        <section id="summary-section" class="app-section d-none">
-            <div class="card p-4">
-                <h4><i class="fas fa-align-left text-success"></i> تلخيص النصوص</h4>
-                <textarea id="summary-text" class="form-control mt-3" rows="5" placeholder="ضع النص الطويل هنا..."></textarea>
-                <button class="btn btn-success mt-3" onclick="handleAction('summary')">لخّص الآن</button>
-                <div class="loader" id="loader-summary"></div>
-                <div id="summary-result" class="result-area mt-3">الملخص سيظهر هنا...</div>
-            </div>
-        </section>
-
-        </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <script>
-        // دالة التنقل بين الأقسام
-        function showSection(sectionId) {
-            $('.app-section').addClass('d-none');
-            $(`#${sectionId}-section`).removeClass('d-none');
-            $('.nav-link').removeClass('active');
-            $(event.target).closest('.nav-link').addClass('active');
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+
+        function showSection(id) {
+            // بسيطة حالياً للتوضيح، يمكنك توسيعها لكل الأقسام
+            alert("سيتم تفعيل باقي الأقسام فوراً بعد ربط السيرفر!");
         }
 
-        // الدالة المركزية لإرسال الطلبات
-        async function handleAction(type) {
-            let endpoint, data, resultId, loaderId, payload;
+        async function process(type) {
+            const topic = document.getElementById('research-topic').value;
+            if (!topic) return alert("يرجى إدخال الموضوع أولاً!");
 
-            if (type === 'research') {
-                const topic = document.getElementById('research-topic').value;
-                if(!topic) return alert("يرجى إدخال عنوان!");
-                endpoint = '/generate_research';
-                payload = { topic: topic };
-                resultId = 'research-result';
-                loaderId = 'loader-research';
-            } 
-            else if (type === 'summary') {
-                const text = document.getElementById('summary-text').value;
-                if(!text) return alert("يرجى إدخال نص!");
-                endpoint = '/summarize'; // تأكد من وجود هذا الـ route في app.py
-                payload = { text: text };
-                resultId = 'summary-result';
-                loaderId = 'loader-summary';
-            }
+            const output = document.getElementById('output-content');
+            const loader = document.getElementById('loader');
 
-            // تنفيذ الطلب
-            const resultDiv = document.getElementById(resultId);
-            const loader = document.getElementById(loaderId);
-
-            resultDiv.style.opacity = '0.5';
-            loader.style.display = 'block';
+            output.innerHTML = "";
+            loader.style.display = "block";
 
             try {
-                const response = await fetch(endpoint, {
+                const response = await fetch('/generate_research', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ topic: topic })
                 });
-
+                
                 const data = await response.json();
-                // عرض النتيجة (التي تم تحويلها لـ HTML في السيرفر)
-                resultDiv.innerHTML = data.research || data.summary || data.response;
+                output.innerHTML = data.research || data.response;
             } catch (error) {
-                resultDiv.innerHTML = "حدث خطأ في جلب البيانات.";
+                output.innerHTML = "<p class='text-danger'>حدث خطأ! تأكد من تشغيل السيرفر وضبط مفتاح Gemini.</p>";
             } finally {
-                loader.style.display = 'none';
-                resultDiv.style.opacity = '1';
+                loader.style.display = "none";
             }
         }
 
-        // Toggle Sidebar for Mobile
-        $('#sidebarCollapse').on('click', function () {
-            $('#sidebar').toggleClass('active');
-        });
+        // ميزة النسخ
+        function copyContent() {
+            const text = document.getElementById('output-content').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("تم نسخ النص بنجاح!");
+            });
+        }
+
+        // ميزة حفظ PDF
+        function downloadPDF() {
+            const element = document.getElementById('output-content');
+            const opt = {
+                margin: 1,
+                filename: 'AcademiX_Research.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
     </script>
 </body>
 </html>
