@@ -4,430 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academix AI | Eng Reda</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* 1. الإعدادات العامة والمتغيرات */ [cite: 78]
+        /* سأضع لك التصميم هنا لكي لا يعطيك 404 مرة أخرى */
         :root {
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.4);
-            --secondary: #a855f7;
-            --accent: #00d2ff; [cite: 79]
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --sidebar-width: 260px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); [cite: 80]
+            --primary: #6366f1; --primary-glow: rgba(99, 102, 241, 0.4);
+            --secondary: #a855f7; --accent: #00d2ff; --bg-dark: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc; --text-dim: #94a3b8; --sidebar-width: 260px;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', sans-serif; [cite: 81]
-        }
-
-        body {
-            background: var(--bg-dark);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%); [cite: 82]
-            color: var(--text-main); [cite: 83]
-            min-height: 100vh;
-            display: flex;
-            overflow-x: hidden;
-        }
-
-        /* 2. القائمة الجانبية (Sidebar) */ [cite: 83]
-        .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(15, 23, 42, 0.8); [cite: 84]
-            backdrop-filter: blur(20px);
-            border-left: 1px solid var(--glass-border);
-            height: 100vh;
-            position: fixed;
-            right: 0;
-            display: flex;
-            flex-direction: column; [cite: 85]
-            padding: 2rem 1rem;
-            z-index: 1000;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 3rem;
-            padding: 0 10px; [cite: 86]
-        }
-
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 12px;
-            display: flex;
-            align-items: center; [cite: 87]
-            justify-content: center;
-            font-size: 1.4rem;
-            box-shadow: 0 0 20px var(--primary-glow);
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px; [cite: 88]
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            cursor: pointer;
-            color: var(--text-dim);
-            transition: var(--transition); [cite: 89]
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: var(--glass-bg);
-            color: var(--text-main);
-            transform: translateX(-5px); [cite: 90]
-        }
-
-        .nav-item.active {
-            border-right: 4px solid var(--primary);
-            background: rgba(99, 102, 241, 0.1); [cite: 91]
-        }
-
-        /* 3. المحتوى الرئيسي والبطاقات */ [cite: 91]
-        .main-content {
-            margin-right: var(--sidebar-width);
-            flex: 1;
-            padding: 2rem;
-            max-width: calc(100vw - var(--sidebar-width)); [cite: 92]
-        }
-
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            animation: fadeIn 0.5s ease-out; [cite: 93]
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1.5rem; [cite: 94]
-        }
-
-        .card-header i { color: var(--primary); font-size: 1.5rem; }
-
-        /* 4. المدخلات والأزرار */ [cite: 94]
-        textarea {
-            width: 100%;
-            min-height: 150px;
-            background: rgba(0, 0, 0, 0.2); [cite: 95]
-            border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            padding: 1rem;
-            color: white;
-            font-size: 1rem;
-            resize: none;
-            outline: none; [cite: 96]
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-glow {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            border-radius: 12px;
-            color: white; [cite: 97]
-            font-weight: bold;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 10px; [cite: 98]
-        }
-
-        .btn-glow:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px var(--primary-glow); [cite: 99]
-        }
-
-        /* 5. منطقة النتائج (الورقة الأكاديمية) */ [cite: 99]
-        .output-paper {
-            background: white;
-            color: #1e293b;
-            padding: 3rem;
-            border-radius: 8px;
-            line-height: 1.7; [cite: 100]
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .markdown-body h1, .markdown-body h2 {
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 1rem; [cite: 101]
-            padding-bottom: 0.5rem;
-        }
-
-        /* 6. شاشة التحميل (DNA Spinner) */ [cite: 101]
-        .loader-wrapper {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem; [cite: 102]
-            padding: 2rem;
-        }
-
-        .dna-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--glass-border);
-            border-top: 4px solid var(--primary); [cite: 103]
-            border-radius: 50%;
-            animation: spin 1s linear infinite; [cite: 104]
-        }
-
-        /* 7. استجابة الموبايل */ [cite: 104]
-        @media (max-width: 768px) {
-            body { flex-direction: column; [cite: 105] }
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                padding: 1rem; [cite: 106]
-                border-left: none;
-                border-bottom: 1px solid var(--glass-border);
-            }
-            .main-content {
-                margin-right: 0;
-                max-width: 100%; [cite: 107]
-                padding: 1rem;
-            }
-            .nav-menu { display: flex; gap: 10px; overflow-x: auto; [cite: 108] }
-            .nav-item { white-space: nowrap; margin-bottom: 0; }
-            .sidebar-footer { display: none; [cite: 109] }
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-left: 1px solid var(--glass-border); height: 100vh; position: fixed; right: 0; display: flex; flex-direction: column; padding: 2rem 1rem; z-index: 1000; }
+        .main-content { margin-right: var(--sidebar-width); flex: 1; padding: 2rem; }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; }
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; }
+        .logo-icon { width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--primary-glow); }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; color: var(--text-dim); transition: 0.3s; }
+        .nav-item.active { border-right: 4px solid var(--primary); background: rgba(99, 102, 241, 0.1); color: var(--text-main); }
+        textarea { width: 100%; min-height: 150px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 15px; padding: 1rem; color: white; margin-bottom: 1.5rem; outline: none; }
+        .btn-glow { padding: 12px 25px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .output-paper { background: white; color: #1e293b; padding: 2.5rem; border-radius: 8px; line-height: 1.7; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 1.5rem; }
+        .loader-wrapper { display: none; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem; }
+        .dna-spinner { width: 40px; height: 40px; border: 4px solid var(--glass-border); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); [cite: 110] } to { opacity: 1; transform: translateY(0); } }
-
-        /* إضافات Drop Zone */
-        .drop-zone {
-            border: 2px dashed var(--glass-border);
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-bottom: 1.5rem;
-        }
-        .result-controls { display: flex; gap: 1rem; margin-bottom: 1rem; }
-        .action-btn { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; color: white; }
-        .copy { background: var(--primary); }
-        .pdf { background: var(--secondary); }
+        @media (max-width: 768px) { body { flex-direction: column; } .sidebar { width: 100%; height: auto; position: relative; border-left: none; } .main-content { margin-right: 0; } }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
         <div class="logo-area">
-            <div class="logo-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
             <h2>Academix</h2>
         </div>
-
-        <div class="nav-menu"> [cite: 113]
-            <div class="nav-item active" onclick="showSection('generate')">
-                <i class="fas fa-pen-nib"></i>
-                <span>توليد تقرير</span>
-            </div>
-            <div class="nav-item" onclick="showSection('summarize')">
-                <i class="fas fa-file-alt"></i> [cite: 114]
-                <span>تلخيص PDF</span>
-            </div>
-            <div class="nav-item" onclick="showSection('mcq')">
-                <i class="fas fa-list-check"></i>
-                <span>أسئلة MCQ</span>
-            </div>
-        </div> [cite: 115]
-
-        <div class="sidebar-footer" style="margin-top: auto; text-align: center; padding: 1rem; border-top: 1px solid var(--glass-border);"> [cite: 116]
-            <p style="font-size: 0.9rem; color: var(--text-dim);">Developed By</p> [cite: 117]
-            <p style="font-weight: bold; color: var(--accent);">Eng Reda</p> [cite: 118]
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="showSection('generate')"><i class="fas fa-pen-nib"></i> <span>توليد تقرير</span></div>
+            <div class="nav-item" onclick="showSection('summarize')"><i class="fas fa-file-alt"></i> <span>تلخيص PDF</span></div>
+            <div class="nav-item" onclick="showSection('mcq')"><i class="fas fa-list-check"></i> <span>أسئلة MCQ</span></div>
+        </div>
+        <div style="margin-top: auto; text-align: center; color: var(--text-dim); font-size: 0.8rem;">
+            Developed By <br> <strong style="color: var(--accent);">Eng Reda</strong>
         </div>
     </nav>
 
     <main class="main-content">
-        
-        <section id="generate-section" class="glass-card">
-            <div class="card-header">
-                <i class="fas fa-magic"></i>
-                <h3>محرك التقارير الذكي</h3>
+        <section id="input-section" class="glass-card">
+            <div id="report-inputs">
+                <h3><i class="fas fa-magic"></i> محرك البحث الأكاديمي</h3>
+                <textarea id="report-prompt" placeholder="مثال: الأمن السيبراني في العراق..."></textarea>
+                <button class="btn-glow" onclick="generateReport()">توليد الآن <i class="fas fa-rocket"></i></button>
             </div>
-            <p style="color: var(--text-dim); margin-bottom: 1rem;">أدخل موضوع البحث وسأقوم بكتابة تقرير أكاديمي كامل لك.</p> [cite: 119, 120]
-            <textarea id="report-prompt" placeholder="مثال: تأثير الذكاء الاصطناعي على التعليم الطبي..."></textarea> [cite: 120]
-            <button class="btn-glow" onclick="generateReport()">
-                <span>ابدأ التوليد</span>
-                <i class="fas fa-rocket"></i>
-            </button>
-        </section>
 
-        <section id="summarize-section" class="glass-card" style="display:none;"> [cite: 121]
-            <div class="card-header">
-                <i class="fas fa-file-pdf"></i>
-                <h3>تلخيص الملفات الجامعية</h3>
+            <div id="file-inputs" style="display:none;">
+                <h3 id="file-title">معالجة ملفات PDF</h3>
+                <div style="border: 2px dashed var(--glass-border); padding: 2rem; text-align: center; border-radius: 15px; margin: 1rem 0; cursor: pointer;" onclick="document.getElementById('pdf-file').click()">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--primary);"></i>
+                    <p id="file-status">اضغط لرفع الملف</p>
+                    <input type="file" id="pdf-file" hidden accept=".pdf" onchange="document.getElementById('file-status').innerText = this.files[0].name">
+                </div>
+                <button id="process-btn" class="btn-glow">بدء المعالجة <i class="fas fa-bolt"></i></button>
             </div>
-            <div class="drop-zone" onclick="document.getElementById('pdf-file').click()">
-                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary);"></i> [cite: 122]
-                <p>اضغط هنا لرفع ملف PDF (الحد الأقصى 15 صفحة)</p>
-                <input type="file" id="pdf-file" hidden accept=".pdf">
-            </div>
-            <button class="btn-glow" onclick="summarizePDF()">
-                <span>تلخيص الآن</span>
-                <i class="fas fa-bolt"></i> [cite: 123]
-            </button>
         </section>
 
         <div id="loader" class="loader-wrapper">
             <div class="dna-spinner"></div>
-            <p>جاري معالجة البيانات أكاديمياً...</p>
+            <p>جاري المعالجة...</p>
         </div>
 
-        <div id="result-area" class="result-wrapper" style="display:none; margin-top: 2rem;">
-            <div class="result-controls"> [cite: 124]
-                <button class="action-btn copy" onclick="copyResult()"><i class="fas fa-copy"></i> نسخ</button>
-                <button class="action-btn pdf" onclick="window.print()"><i class="fas fa-file-pdf"></i> PDF</button>
-            </div>
-            <div class="output-paper markdown-body" id="output-content"></div>
-            <div style="text-align: center; margin-top: 2rem; color: var(--text-dim);"> [cite: 125]
-                <p>© 2024 Academix AI - Powered By <strong>Eng Reda</strong></p>
-            </div>
+        <div id="result-area" style="display:none;">
+            <div id="output-content" class="output-paper"></div>
         </div>
-
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> [cite: 125]
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        // 1. وظائف التنقل بين الأقسام [cite: 129]
-        function showSection(sectionName) {
-            document.getElementById('generate-section').style.display = 'none';
-            document.getElementById('summarize-section').style.display = 'none'; [cite: 130]
-            document.getElementById('result-area').style.display = 'none';
+        function showSection(mode) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('report-inputs').style.display = (mode === 'generate') ? 'block' : 'none';
+            document.getElementById('file-inputs').style.display = (mode !== 'generate') ? 'block' : 'none';
+            if(mode === 'summarize') document.getElementById('process-btn').onclick = summarizePDF;
+            if(mode === 'mcq') document.getElementById('process-btn').onclick = generateMCQ;
+        }
 
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active')); [cite: 130]
-
-            if (sectionName === 'generate') { [cite: 131]
-                document.getElementById('generate-section').style.display = 'block';
-                if(event) event.currentTarget.classList.add('active'); [cite: 132]
-            } else if (sectionName === 'summarize') {
-                document.getElementById('summarize-section').style.display = 'block';
-                if(event) event.currentTarget.classList.add('active'); [cite: 132]
-            } else if (sectionName === 'mcq') { [cite: 133]
-                document.getElementById('summarize-section').style.display = 'block';
-                if(event) event.currentTarget.classList.add('active'); [cite: 134]
-            }
-        } [cite: 135]
-
-        // 2. وظيفة توليد التقارير [cite: 135]
         async function generateReport() {
             const prompt = document.getElementById('report-prompt').value;
-            if (!prompt) return alert("يرجى إدخال موضوع البحث أولاً"); [cite: 136]
+            if(!prompt) return alert("اكتب الموضوع");
+            apiCall('/generate', { prompt: prompt }, 'report');
+        }
 
+        async function summarizePDF() { fileApiCall('/summarize_pdf', 'summary'); }
+        async function generateMCQ() { fileApiCall('/generate_mcq', 'questions'); }
+
+        async function apiCall(url, body, resKey) {
             toggleLoader(true);
             try {
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: prompt })
-                });
-                const data = await response.json(); [cite: 137]
-                displayResult(data.report);
-            } catch (error) {
-                alert("حدث خطأ في الاتصال بالسيرفر"); [cite: 137]
-            } finally {
-                toggleLoader(false); [cite: 138, 139]
-            }
+                const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+                const d = await r.json();
+                display(d[resKey]);
+            } catch(e) { alert("خطأ اتصال"); }
+            toggleLoader(false);
         }
 
-        // 3. وظيفة تلخيص الـ PDF [cite: 139]
-        async function summarizePDF() {
-            const fileInput = document.getElementById('pdf-file');
-            if (fileInput.files.length === 0) return alert("يرجى اختيار ملف PDF"); [cite: 140]
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
+        async function fileApiCall(url, resKey) {
+            const file = document.getElementById('pdf-file').files[0];
+            if(!file) return alert("ارفع ملف");
+            const fd = new FormData(); fd.append('file', file);
             toggleLoader(true);
-            try { [cite: 141]
-                const response = await fetch('/summarize_pdf', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json(); [cite: 142]
-                displayResult(data.summary);
-            } catch (error) {
-                alert("خطأ في معالجة الملف"); [cite: 142]
-            } finally {
-                toggleLoader(false); [cite: 143, 144]
-            }
+            try {
+                const r = await fetch(url, { method:'POST', body:fd });
+                const d = await r.json();
+                display(d[resKey] || d.summary || d.questions);
+            } catch(e) { alert("خطأ سيرفر"); }
+            toggleLoader(false);
         }
 
-        // 4. عرض النتائج وتحويل Markdown [cite: 144]
-        function displayResult(content) {
-            const resultArea = document.getElementById('result-area');
-            const outputContent = document.getElementById('output-content'); [cite: 145]
-            
-            outputContent.innerHTML = marked.parse(content);
-            resultArea.style.display = 'block'; [cite: 145]
-            resultArea.scrollIntoView({ behavior: 'smooth' }); [cite: 146]
+        function display(content) {
+            document.getElementById('output-content').innerHTML = marked.parse(content || "لا توجد نتائج");
+            document.getElementById('result-area').style.display = 'block';
         }
 
-        // 5. التحكم في شاشة التحميل [cite: 146]
-        function toggleLoader(show) {
-            document.getElementById('loader').style.display = show ? 'flex' : 'none'; [cite: 147]
-            if (show) {
-                document.getElementById('result-area').style.display = 'none';
-            } [cite: 148]
-        }
-
-        // 6. وظيفة نسخ النص [cite: 148]
-        function copyResult() {
-            const text = document.getElementById('output-content').innerText;
-            navigator.clipboard.writeText(text).then(() => { [cite: 149]
-                alert("تم نسخ النص بنجاح!");
-            }); [cite: 150]
-        }
-
-        // 7. تحسين منطقة الرفع [cite: 150]
-        const dropZone = document.querySelector('.drop-zone');
-        if (dropZone) { [cite: 151]
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = 'var(--primary)';
-                dropZone.style.background = 'rgba(99, 102, 241, 0.1)';
-            });
-            dropZone.addEventListener('dragleave', () => { [cite: 152]
-                dropZone.style.borderColor = 'var(--glass-border)';
-                dropZone.style.background = 'transparent';
-            });
-            dropZone.addEventListener('drop', (e) => { [cite: 153]
-                e.preventDefault();
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    document.getElementById('pdf-file').files = files;
-                    alert("تم استلام الملف: " + files[0].name);
-                }
-            }); [cite: 154]
-        }
+        function toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
     </script>
 </body>
 </html>
