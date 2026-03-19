@@ -86,7 +86,7 @@
                      onclick="document.getElementById('mcqFile').click()">
                     <input type="file" id="mcqFile" accept=".pdf" style="display: none;" onchange="updateMcqFileName(this)">
                     <i class="fas fa-file-circle-question fa-3x" style="color: var(--accent); margin-bottom: 15px;"></i>
-                    <p id="mcqFileName" style="margin:0; color: var(--text-dim);"> ىاضغط هنا لرفع ملف الملخص  (PDF)</p>
+                    <p id="mcqFileName" style="margin:0; color: var(--text-dim);"> اضغط هنا لرفع ملف الأسئلة (PDF)</p>
                 </div>
 
                 <button class="btn btn-primary" style="background: var(--accent); border:none;" onclick="generateMCQs()">
@@ -112,48 +112,116 @@
                 <i class="fas fa-file-pdf"></i> حفظ النتيجة كـ PDF
             </button>
 
-            <div id="reportWrapper">
-                <div id="outputContent"></div>
+            <div id="reportWrapper" style="display:none; width: 100%;">
+                <div id="outputContent" class="glass-card" style="background: white; color: black; padding: 30px; line-height: 1.8;"></div>
             </div>
         </div>
 
     </main>
 
-    <script src="/static/script.js"></script>
-    
     <script>
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-            headerIds: false,
-            mangle: false
-        });
+        marked.setOptions({ breaks: true, gfm: true });
 
+        // تبديل الأقسام
         function showSection(sectionId, element) {
             document.querySelectorAll('.section-container').forEach(sec => sec.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            
             document.getElementById(sectionId).style.display = 'block';
             element.classList.add('active');
-            
+            resetUI();
+        }
+
+        function resetUI() {
             document.getElementById('reportWrapper').style.display = 'none';
             document.getElementById('pdfBtnReport').style.display = 'none';
             document.getElementById('loader').style.display = 'none';
+            document.getElementById('outputContent').innerHTML = '';
         }
 
-        function handleFileUpload(input) {
-            if (input.files && input.files[0]) {
-                const fileName = input.files[0].name;
-                document.getElementById('fileName').innerHTML = `<b style="color: var(--secondary)">تم اختيار:</b> ${fileName}`;
-                if (typeof summarizePDF === "function") summarizePDF();
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            if(show) {
+                document.getElementById('reportWrapper').style.display = 'none';
+                document.getElementById('pdfBtnReport').style.display = 'none';
             }
         }
 
-        // تحديث اسم ملف الأسئلة في الواجهة
+        // --- وظيفة توليد التقارير ---
+        async function generateReport() {
+            const prompt = document.getElementById('promptInput').value;
+            if (!prompt) return alert("يرجى إدخال موضوع البحث");
+
+            showLoader(true);
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await response.json();
+                renderResult(data.report || data.error);
+            } catch (e) { renderResult("خطأ في الاتصال بالسيرفر"); }
+            showLoader(false);
+        }
+
+        // --- وظيفة التلخيص ---
+        async function handleFileUpload(input) {
+            if (!input.files[0]) return;
+            document.getElementById('fileName').innerHTML = `<b style="color: var(--secondary)">تم اختيار:</b> ${input.files[0].name}`;
+            
+            showLoader(true);
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const response = await fetch('/summarize_pdf', { method: 'POST', body: formData });
+                const data = await response.json();
+                renderResult(data.summary || data.error);
+            } catch (e) { renderResult("حدث خطأ أثناء التلخيص"); }
+            showLoader(false);
+        }
+
+        // --- وظيفة الأسئلة MCQ ---
         function updateMcqFileName(input) {
-            if (input.files && input.files[0]) {
+            if (input.files[0]) {
                 document.getElementById('mcqFileName').innerHTML = `<b style="color: var(--accent)">جاهز:</b> ${input.files[0].name}`;
             }
+        }
+
+        async function generateMCQs() {
+            const fileInput = document.getElementById('mcqFile');
+            if (!fileInput.files[0]) return alert("يرجى اختيار ملف أولاً");
+
+            showLoader(true);
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/generate_mcq', { method: 'POST', body: formData });
+                const data = await response.json();
+                renderResult(data.questions || data.error);
+            } catch (e) { renderResult("حدث خطأ أثناء توليد الأسئلة"); }
+            showLoader(false);
+        }
+
+        // عرض النتائج وتنسيقها
+        function renderResult(content) {
+            document.getElementById('reportWrapper').style.display = 'block';
+            document.getElementById('outputContent').innerHTML = marked.parse(content);
+            document.getElementById('pdfBtnReport').style.display = 'block';
+            window.scrollTo({ top: document.getElementById('resultArea').offsetTop, behavior: 'smooth' });
+        }
+
+        function exportToPDF() {
+            const element = document.getElementById('outputContent');
+            const opt = {
+                margin: 0.5,
+                filename: 'AcademiX_Result.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
     </script>
 </body>
