@@ -1,149 +1,98 @@
-// استهداف العناصر مرة واحدة لضمان الأداء
-const getEl = (id) => document.getElementById(id);
+// public/script.js
 
-// --- الميزة الأولى: توليد التقارير الأكاديمية ---
+// 1. دالة توليد التقارير الأكاديمية
 async function generateReport() {
-    const promptInput = getEl('promptInput');
-    const outputContent = getEl('outputContent');
-    const reportWrapper = getEl('reportWrapper');
-    const loader = getEl('loader');
-    const pdfBtn = getEl('pdfBtnReport');
+    const prompt = document.getElementById('promptInput').value;
+    if (!prompt) return alert("الرجاء إدخال موضوع البحث");
 
-    if (!promptInput.value.trim()) {
-        alert("يرجى إدخال موضوع البحث!");
-        return;
-    }
-
-    loader.style.display = 'block';
-    reportWrapper.style.display = 'none';
-    if(pdfBtn) pdfBtn.style.display = 'none';
-
+    showLoader(true);
     try {
         const response = await fetch('/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: promptInput.value }),
+            body: JSON.stringify({ prompt: prompt })
         });
 
         const data = await response.json();
-        
-        if (data.result) {
-            outputContent.innerHTML = marked.parse(data.result);
-            reportWrapper.style.display = 'block';
-            if(pdfBtn) pdfBtn.style.display = 'flex';
-            updateUserPoints(10);
-        } else {
-            alert("حدث خطأ في التوليد");
-        }
+        // تنسيق النص ليظهر بشكل (إنجليزي - عربي) مرتب
+        renderFormattedOutput(data.report);
+        document.getElementById('pdfBtnReport').style.display = 'flex';
     } catch (error) {
-        console.error("Error:", error);
-        alert("خطأ في الاتصال بالسيرفر");
+        console.error("خطأ في التوليد:", error);
+        alert("حدث خطأ أثناء الاتصال بالسيرفر");
     } finally {
-        loader.style.display = 'none';
+        showLoader(false);
     }
 }
 
-// --- الميزة الثانية: رفع وتلخيص PDF (دالة موحدة) ---
-async function summarizePDF() {
-    const pdfUpload = getEl('pdfUpload');
-    const file = pdfUpload.files[0];
-    if (!file) return;
+// 2. دالة تنسيق النص المخرج (عربي + إنجليزي مرتب)
+function renderFormattedOutput(rawText) {
+    const wrapper = document.getElementById('reportWrapper');
+    const content = document.getElementById('outputContent');
+    wrapper.style.display = 'block';
 
-    if (file.type !== "application/pdf") {
-        alert("يرجى اختيار ملف PDF فقط");
-        return;
-    }
+    // استخدام مكتبة marked لتحويل Markdown إلى HTML
+    let htmlContent = marked.parse(rawText);
+
+    // إضافة لمسة جمالية برمجية لتمييز الفقرات الإنجليزية عن العربية
+    // نفترض أن النص المولد يأتي بتنسيق يسهل فصله أو فقرات متتالية
+    content.innerHTML = `
+        <div class="report-header" style="text-align:center; border-bottom:2px solid #4facfe; margin-bottom:20px; padding-bottom:10px;">
+            <h1 style="color:#1e293b;">التقرير الأكاديمي الذكي</h1>
+            <p style="color:#64748b;">تم التوليد بواسطة AcademiX AI - 2026</p>
+        </div>
+        <div class="report-body">
+            ${htmlContent}
+        </div>
+    `;
+    
+    // سكرول تلقائي للنتيجة
+    wrapper.scrollIntoView({ behavior: 'smooth' });
+}
+
+// 3. دالة حفظ الملف PDF (بجودة عالية وتنسيق صحيح)
+function exportToPDF() {
+    const element = document.getElementById('reportWrapper');
+    
+    // إعدادات المكتبة لضمان جودة الطباعة ودعم اللغة العربية
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: 'AcademiX_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // تنفيذ عملية الحفظ
+    html2pdf().set(opt).from(element).save();
+}
+
+// 4. وظائف المساعدة (Loader)
+function showLoader(show) {
+    document.getElementById('loader').style.display = show ? 'block' : 'none';
+    if(show) document.getElementById('reportWrapper').style.display = 'none';
+}
+
+// 5. دالة تلخيص PDF (إذا كنت تستخدمها)
+async function summarizePDF() {
+    const fileInput = document.getElementById('pdfUpload');
+    if (!fileInput.files[0]) return;
 
     const formData = new FormData();
-    formData.append('file', file);
-    
-    const loader = getEl('loader');
-    const reportWrapper = getEl('reportWrapper');
-    const output = getEl('outputContent');
-    const pdfBtn = getEl('pdfBtnReport');
+    formData.append('file', fileInput.files[0]);
 
-    loader.style.display = 'block';
-    reportWrapper.style.display = 'none';
-
+    showLoader(true);
     try {
         const response = await fetch('/summarize_pdf', {
             method: 'POST',
-            body: formData 
+            body: formData
         });
-
         const data = await response.json();
-        
-        if (data.result) {
-            output.innerHTML = marked.parse(data.result);
-            reportWrapper.style.display = 'block';
-            if(pdfBtn) pdfBtn.style.display = 'flex';
-            updateUserPoints(20);
-        } else {
-            alert("فشل التلخيص: " + data.result);
-        }
+        renderFormattedOutput(data.summary);
+        document.getElementById('pdfBtnReport').style.display = 'flex';
     } catch (error) {
-        console.error("Upload Error:", error);
-        alert("حدث خطأ أثناء معالجة الملف");
+        alert("فشل في تحليل ملف PDF");
     } finally {
-        loader.style.display = 'none';
-        pdfUpload.value = ''; 
-    }
-}
-
-// --- الميزة الثالثة: مصنع اختبارات MCQ (إضافة الميزة البرمجية) ---
-async function generateMCQ() {
-    const input = getEl('mcqInput');
-    const topic = input.value.trim();
-    if(!topic) return alert("أدخل موضوع الاختبار أولاً");
-
-    const loader = getEl('loader');
-    const output = getEl('outputContent');
-    const reportWrapper = getEl('reportWrapper');
-
-    loader.style.display = 'block';
-    
-    try {
-        const response = await fetch('/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: `أنشئ اختبار اختيار من متعدد (MCQ) مفصل عن: ${topic}. مع ذكر الإجابات الصحيحة في النهاية.` }),
-        });
-        const data = await response.json();
-        output.innerHTML = marked.parse(data.result);
-        reportWrapper.style.display = 'block';
-    } catch (e) {
-        alert("خطأ في توليد الأسئلة");
-    } finally {
-        loader.style.display = 'none';
-    }
-}
-
-// --- وظيفة الحفظ المحدثة ---
-function exportToPDF() {
-    const element = getEl('reportWrapper');
-    const pdfBtn = getEl('pdfBtnReport');
-
-    if (!element) return;
-    if(pdfBtn) pdfBtn.style.display = 'none';
-
-    const opt = {
-        margin:       [0.5, 0.5],
-        filename:     'AcademiX_Document_2026.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-        if(pdfBtn) pdfBtn.style.display = 'flex';
-    });
-}
-
-function updateUserPoints(pts) {
-    const p = getEl('userPoints');
-    if (p) {
-        let currentPoints = parseInt(p.innerText) || 0;
-        p.innerText = currentPoints + pts;
+        showLoader(false);
     }
 }
