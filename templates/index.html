@@ -69,9 +69,7 @@
                 <h2><i class="fas fa-file-alt" style="color: var(--secondary)"></i> تلخيص المحاضرات الذكي</h2>
                 <p>ارفع ملفك وسأقوم بتحليله وتلخيصه بلغتين (عربي - إنجليزي) بشكل مفصل.</p>
                 <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed var(--primary); padding: 30px; border-radius: 15px; text-align: center; transition: 0.3s;" 
-                     onclick="document.getElementById('pdfUpload').click()"
-                     onmouseover="this.style.background='rgba(79, 172, 254, 0.05)'"
-                     onmouseout="this.style.background='transparent'">
+                     onclick="document.getElementById('pdfUpload').click()">
                     <input type="file" id="pdfUpload" accept=".pdf" style="display: none;" onchange="handleFileUpload(this)">
                     <i class="fas fa-cloud-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
                     <p id="fileName" style="margin:0; color: var(--text-dim);">اسحب الملف هنا أو اضغط للاختيار</p>
@@ -81,18 +79,26 @@
 
         <div id="mcqSection" class="section-container" style="display:none;">
              <div class="glass-card">
-                <h2><i class="fas fa-vial" style="color: var(--accent)"></i> مصنع الاختبارات</h2>
-                <div class="input-area">
-                    <textarea id="mcqInput" placeholder="أدخل النص لتوليد الأسئلة..."></textarea>
+                <h2><i class="fas fa-vial" style="color: var(--accent)"></i> مصنع الاختبارات الذكي</h2>
+                <p>ارفع ملف المحاضرة وسأقوم بإنشاء بنك أسئلة (إنجليزي - عربي) مترجم بالكامل.</p>
+                
+                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed var(--accent); padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px;" 
+                     onclick="document.getElementById('mcqFile').click()">
+                    <input type="file" id="mcqFile" accept=".pdf" style="display: none;" onchange="updateMcqFileName(this)">
+                    <i class="fas fa-file-circle-question fa-3x" style="color: var(--accent); margin-bottom: 15px;"></i>
+                    <p id="mcqFileName" style="margin:0; color: var(--text-dim);">اضغط هنا لرفع ملف الأسئلة (PDF)</p>
                 </div>
-                <button class="btn btn-primary" onclick="alert('هذه الميزة ستتوفر في التحديث القادم!')">إنشاء الاختبار</button>
+
+                <button class="btn btn-primary" style="background: var(--accent); border:none;" onclick="generateMCQs()">
+                    <i class="fas fa-wand-magic-sparkles"></i> توليد بنك الأسئلة المترجم (+15)
+                </button>
              </div>
         </div>
 
         <div id="imageSection" class="section-container" style="display:none;">
              <div class="glass-card" style="text-align: center;">
                 <h2><i class="fas fa-eye"></i> حل الصور</h2>
-                <p>جاري العمل على ربط ميزة رؤية الحاسوب (Computer Vision)...</p>
+                <p>ميزة رؤية الحاسوب قيد التفعيل الأكاديمي...</p>
              </div>
         </div>
 
@@ -116,10 +122,9 @@
     <script src="/static/script.js"></script>
     
     <script>
-        // إعدادات مكتبة Marked لضمان أفضل تنسيق أكاديمي
         marked.setOptions({
-            breaks: true,      // تحويل الأسطر الجديدة إلى <br>
-            gfm: true,         // تفعيل GitHub Flavored Markdown
+            breaks: true,
+            gfm: true,
             headerIds: false,
             mangle: false
         });
@@ -140,10 +145,14 @@
             if (input.files && input.files[0]) {
                 const fileName = input.files[0].name;
                 document.getElementById('fileName').innerHTML = `<b style="color: var(--secondary)">تم اختيار:</b> ${fileName}`;
-                
-                if (typeof summarizePDF === "function") {
-                    summarizePDF();
-                }
+                if (typeof summarizePDF === "function") summarizePDF();
+            }
+        }
+
+        // تحديث اسم ملف الأسئلة في الواجهة
+        function updateMcqFileName(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('mcqFileName').innerHTML = `<b style="color: var(--accent)">جاهز:</b> ${input.files[0].name}`;
             }
         }
     </script>
