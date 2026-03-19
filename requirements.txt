@@ -2,4 +2,3 @@ flask
 flask-cors
 groq
 pdfplumber
-PyPDF2
