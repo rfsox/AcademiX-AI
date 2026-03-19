@@ -54,7 +54,7 @@ def generate():
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=6000 # زيادة الحد الأقصى للكلمات
+            max_tokens=8000 # زيادة الحد الأقصى للكلمات
         )
         return jsonify({'report': completion.choices[0].message.content})
     except Exception as e:
