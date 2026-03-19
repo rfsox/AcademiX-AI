@@ -7,14 +7,15 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-app = Flask(__name__)
+# تعريف التطبيق وتحديد مسار المجلدات الثابتة لضمان عدم تخبط التصميم
+app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-# إعداد العميل - جلب المفتاح من بيئة فيرسل
+# إعداد العميل
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
-# الموديلات المعتمدة (تم اختيارها للتوازن بين القوة والتكلفة)
+# الموديلات
 MODEL_REPORT = "llama-3.3-70b-versatile"
 MODEL_FAST = "llama-3.1-8b-instant"
 MODEL_VISION = "llama-3.2-11b-vision-preview"
@@ -32,8 +33,8 @@ def extract_content(file_storage):
         if not file_bytes: return ""
         
         with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-            # معالجة أول 20 صفحة لضمان عدم تجاوز الـ Time Limit في فيرسل
-            for page in pdf.pages[:20]:
+            # تقليل عدد الصفحات لـ 15 لضمان عدم تجاوز الـ Timeout في Vercel مجاني
+            for page in pdf.pages[:15]:
                 content = page.extract_text()
                 if content:
                     extracted_text += content + "\n"
@@ -45,7 +46,6 @@ def extract_content(file_storage):
 def index():
     return render_template('index.html')
 
-# 1. توليد التقارير
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
@@ -56,29 +56,28 @@ def generate():
         completion = client.chat.completions.create(
             model=MODEL_REPORT,
             messages=[
-                {"role": "system", "content": "أنت بروفيسور أكاديمي. اكتب باللغة العربية مباشرة وبدون مقدمات خارج الموضوع."},
+                {"role": "system", "content": "أنت بروفيسور أكاديمي. اكتب باللغة العربية مباشرة وبدون مقدمات."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=4000 
+            max_tokens=3000 # تقليل التوكنز قليلاً لتسريع الرد
         )
         return jsonify({'report': completion.choices[0].message.content})
     except Exception as e:
         return jsonify({'report': f"خطأ: {str(e)}"}), 500
 
-# 2. تلخيص PDF
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
         if 'file' not in request.files: return jsonify({'summary': 'الملف مفقود'}), 400
         raw_text = extract_content(request.files['file'])
-        if not raw_text: return jsonify({'summary': 'لم أتمكن من استخراج نص من الملف.'})
+        if not raw_text: return jsonify({'summary': 'لم أتمكن من استخراج نص.'})
 
         completion = client.chat.completions.create(
             model=MODEL_FAST,
             messages=[
-                {"role": "system", "content": "تلخيص احترافي: فقرة إنجليزية متبوعة بترجمة عربية دقيقة. ابدأ فوراً."},
-                {"role": "user", "content": f"Analyze this text:\n\n{raw_text[:12000]}"}
+                {"role": "system", "content": "تلخيص احترافي: فقرة إنجليزية متبوعة بترجمة عربية."},
+                {"role": "user", "content": f"Analyze:\n\n{raw_text[:10000]}"}
             ],
             temperature=0.3
         )
@@ -86,7 +85,6 @@ def summarize_pdf():
     except Exception as e:
         return jsonify({'summary': f"خطأ تقني: {str(e)}"}), 500
 
-# 3. مصنع الأسئلة MCQ
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
     try:
@@ -96,8 +94,8 @@ def generate_mcq():
         completion = client.chat.completions.create(
             model=MODEL_FAST,
             messages=[
-                {"role": "system", "content": "Generate MCQs in English and Arabic. Highlight the correct answer. Markdown only."},
-                {"role": "user", "content": f"Create questions from:\n\n{raw_text[:12000]}"}
+                {"role": "system", "content": "Generate MCQs in English and Arabic. Markdown only."},
+                {"role": "user", "content": f"Create questions from:\n\n{raw_text[:10000]}"}
             ],
             temperature=0.5
         )
@@ -105,13 +103,13 @@ def generate_mcq():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 4. حل الأسئلة بالصور
 @app.route('/analyze_image', methods=['POST'])
 def analyze_image():
     try:
         if 'image' not in request.files: return jsonify({'error': 'الصورة مفقودة'}), 400
         
         image_file = request.files['image']
+        # تأكد من ضغط الصورة إذا كانت كبيرة جداً لتجنب خطأ Payload Too Large
         base64_image = base64.b64encode(image_file.read()).decode('utf-8')
 
         completion = client.chat.completions.create(
@@ -125,14 +123,15 @@ def analyze_image():
                     ]
                 }
             ],
-            max_tokens=2000
+            max_tokens=1500
         )
         return jsonify({'solution': completion.choices[0].message.content})
     except Exception as e:
         return jsonify({'error': f"خطأ الرؤية: {str(e)}"}), 500
 
-# السطر المهم جداً لـ Vercel
+# السطر الذهبي لـ Vercel
+app.debug = False
 application = app
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
