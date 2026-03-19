@@ -1,4 +1,4 @@
-/* static/style.css */
+/* public/style.css */
 :root {
     --primary: #4facfe;
     --secondary: #00f2fe;
@@ -7,16 +7,18 @@
     --text-main: #f8fafc;
     --accent: #f59e0b;
     --success: #10b981;
+    --danger: #ef4444;
 }
 
+/* تحسين الخطوط والتنسيق العام */
 body {
-    font-family: 'Cairo', sans-serif;
+    font-family: 'Cairo', 'Tajawal', sans-serif;
     background-color: var(--bg-dark);
     color: var(--text-main);
     margin: 0;
     display: flex;
     min-height: 100vh;
-    transition: all 0.3s ease;
+    direction: rtl; /* دعم الاتجاه العربي بشكل افتراضي */
 }
 
 /* القائمة الجانبية (Sidebar) */
@@ -30,31 +32,34 @@ body {
     position: fixed;
     height: 100vh;
     z-index: 1000;
+    box-sizing: border-box;
 }
 
 .logo-area { 
     text-align: center; 
-    margin-bottom: 30px; 
+    margin-bottom: 25px; 
     border-bottom: 1px solid #334155; 
     padding-bottom: 15px; 
 }
-.logo-area h2 { color: var(--secondary); font-family: 'Tajawal'; margin: 0; }
+.logo-area h2 { color: var(--secondary); font-size: 1.5rem; margin: 0; }
 
-.nav-menu { flex: 1; }
+.nav-menu { flex: 1; overflow-y: auto; }
 .nav-item { 
     padding: 12px 15px;
     margin-bottom: 8px; 
-    border-radius: 10px; 
+    border-radius: 12px; 
     cursor: pointer; 
     display: flex; 
     align-items: center;
     gap: 12px;
-    transition: 0.3s;
+    transition: all 0.3s ease;
     color: #94a3b8;
+    text-decoration: none;
 }
 .nav-item:hover, .nav-item.active { 
-    background: var(--primary); 
-    color: white; 
+    background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+    color: #0f172a;
+    font-weight: bold;
 }
 
 .stats-card {
@@ -62,152 +67,133 @@ body {
     border: 1px solid var(--accent);
     padding: 15px;
     border-radius: 12px;
-    margin-top: auto;
+    margin-top: 20px;
 }
 
 /* المحتوى الرئيسي */
 .main-content {
-    margin-right: 260px; /* مسافة ثابتة للكمبيوتر */
+    margin-right: 260px; /* للكمبيوتر فقط */
     flex: 1;
     padding: 40px;
     width: 100%;
-}
-
-.section-container {
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .glass-card {
     background: var(--card-dark);
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.05);
 }
 
 .input-area textarea {
     width: 100%;
-    height: 150px; 
+    height: 120px; 
     background: #0f172a;
     border: 1px solid #334155; 
     border-radius: 12px;
     color: white; 
     padding: 15px; 
-    font-size: 16px; 
+    font-size: 1rem; 
     resize: none;
     font-family: inherit;
+    transition: border 0.3s;
 }
+.input-area textarea:focus { border-color: var(--primary); outline: none; }
+
+/* قسم رفع الـ PDF الجديد */
+.pdf-upload-box {
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px dashed #334155;
+    border-radius: 12px;
+    text-align: center;
+    transition: 0.3s;
+}
+.pdf-upload-box:hover { border-color: var(--primary); background: rgba(79, 172, 254, 0.05); }
 
 .action-btns { 
     display: flex; 
-    gap: 15px; 
+    gap: 12px; 
     margin-top: 20px; 
 }
 
 .btn { 
-    padding: 12px 25px;
+    padding: 12px 20px;
     border-radius: 10px; 
     border: none; 
     cursor: pointer; 
     font-weight: bold;
     display: flex; 
     align-items: center; 
+    justify-content: center;
     gap: 8px;
-    transition: 0.2s;
+    transition: 0.3s;
+    font-size: 0.95rem;
 }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: #0f172a; }
 .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+.btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
-.citation-box {
-    margin-top: 20px;
-    padding: 15px; 
-    background: rgba(79, 172, 254, 0.05);
-    border-right: 4px solid var(--primary); 
-    border-radius: 5px; 
-    font-size: 0.9rem;
-}
-
+/* منطقة النتائج */
 #reportWrapper { 
     background: white; 
     color: #1e293b; 
-    padding: 40px; 
+    padding: 35px; 
     margin-top: 30px; 
-    border-radius: 12px;
+    border-radius: 15px;
     display: none; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    line-height: 1.8;
+}
+
+/* اللودر (Loader) */
+#loader {
+    display: none;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--secondary);
 }
 
 /* ====================================================== */
-/* تعديلات الموبايل الاحترافية (ظهور الميزات بالطول)       */
+/* تعديلات الموبايل (Responsive)                         */
 /* ====================================================== */
 @media (max-width: 768px) {
-    body {
-        flex-direction: column; /* ترتيب العناصر عمودياً */
-    }
+    body { flex-direction: column; }
 
     .sidebar { 
-        position: relative; /* جعل القائمة تظهر في الأعلى وليست ثابتة بالجانب */
+        position: relative; 
         width: 100%;
         height: auto;
-        min-height: auto;
-        padding: 15px;
+        padding: 10px;
         border-left: none;
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .logo-area {
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-    }
-
     .nav-menu {
         display: flex;
-        flex-direction: row; /* جعل الميزات بجانب بعضها بالعرض في الموبايل */
-        overflow-x: auto; /* السماح بسحب القائمة يميناً ويساراً */
+        flex-direction: row;
+        overflow-x: auto;
         gap: 8px;
-        padding-bottom: 10px;
-        scrollbar-width: none; /* إخفاء شريط التمرير لجمالية التصميم */
+        padding: 5px 0;
     }
-    .nav-menu::-webkit-scrollbar { display: none; }
 
     .nav-item {
         margin-bottom: 0;
-        white-space: nowrap; /* منع انقسام نص الميزة على سطرين */
-        padding: 10px 15px;
-        font-size: 13px;
-    }
-
-    .stats-card {
-        display: none; /* إخفاء بطاقة النقاط في الموبايل لتوفير مساحة */
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 0.85rem;
     }
 
     .main-content { 
-        margin-right: 0; /* إلغاء الفراغ الجانبي */
-        padding: 20px 15px;
-        width: 100%;
-        box-sizing: border-box;
+        margin-right: 0; 
+        padding: 15px;
     }
 
-    .glass-card {
-        padding: 20px;
-    }
+    .logo-area { margin-bottom: 10px; padding-bottom: 5px; border: none; }
+    .stats-card { display: none; }
 
-    .action-btns {
-        flex-direction: column; /* الأزرار فوق بعضها في الموبايل */
-        gap: 10px;
-    }
-
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    #reportWrapper {
-        padding: 20px;
-        font-size: 14px;
-        margin-top: 20px;
-    }
+    .action-btns { flex-direction: column; }
+    .btn { width: 100%; }
 }
