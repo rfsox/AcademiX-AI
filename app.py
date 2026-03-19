@@ -8,19 +8,17 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
-# جلب المفتاح من إعدادات Vercel
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# جلب المفتاح - تأكد من إضافته في Vercel Dashboard
+API_KEY = os.environ.get("GROQ_API_KEY")
+client = Groq(api_key=API_KEY)
 
-# استخدام الموديل الأقوى لضمان عدم ترك أي تفصيلة في المنهج
-MODEL_NAME = "llama-3.3-70b-versatile"
-
-def extract_all_text(file):
+def extract_text(file):
     text = ""
     try:
         file.seek(0)
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            # يقرأ حتى 30 صفحة لضمان شمولية المنهج
-            for page in pdf.pages[:30]:
+            # نحدد أول 15 صفحة لضمان السرعة وعدم الكراش
+            for page in pdf.pages[:15]:
                 content = page.extract_text()
                 if content: text += content + "\n"
     except: pass
@@ -30,48 +28,44 @@ def extract_all_text(file):
 def index():
     return render_template('index.html')
 
-@app.route('/summarize_pdf', methods=['POST'])
-def summarize_pdf():
-    try:
-        raw_text = extract_all_text(request.files['file'])
-        completion = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": """أنت خبير أكاديمي رفيع المستوى. 
-                المطلوب: شرح وتلخيص المنهج كاملاً بـ 7000 توكن.
-                نظام التنسيق الإلزامي:
-                1. الفقرة باللغة الإنجليزية أولاً (English Text).
-                2. الترجمة العربية الوافية تحتها مباشرة (Arabic Translation).
-                3. استخدم العناوين الكبيرة والمميزة. لا تترك أي موضوع دون شرح."""},
-                {"role": "user", "content": f"لخص هذا المنهج بدقة متناهية:\n\n{raw_text[:18000]}"}
-            ],
-            max_tokens=7000,
-            temperature=0.4
-        )
-        return jsonify({'summary': completion.choices[0].message.content})
-    except Exception as e:
-        return jsonify({'summary': f"Error: {str(e)}"}), 500
-
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
     try:
-        raw_text = extract_all_text(request.files['file'])
+        raw_text = extract_text(request.files['file'])
+        if not raw_text: return jsonify({'error': "لم يتم العثور على نص"}), 400
+
+        # استخدمنا 3.1-8b لأنه طلقة بالسرعة ويمنع خطأ 500
         completion = client.chat.completions.create(
-            model=MODEL_NAME,
+            model="llama-3.1-8b-instant", 
             messages=[
-                {"role": "system", "content": """أنت واضع أسئلة امتحانية محترف.
-                المطلوب: توليد أكبر عدد ممكن من الأسئلة (MCQ) لتغطية المنهج بنسبة 100%.
-                نظام التنسيق (هام جداً):
-                - السؤال بالإنجليزية.
-                - السؤال بالعربية.
-                - الخيارات (A, B, C, D) بالإنجليزية وتحتها ترجمتها بالعربية.
-                - مفتاح الحل في النهاية.
-                افصل بين كل سؤال والآخر بخط واضح."""},
-                {"role": "user", "content": f"أنشئ بنك أسئلة شامل لهذا المنهج:\n\n{raw_text[:18000]}"}
+                {"role": "system", "content": """أنت خبير أسئلة. أنشئ أسئلة MCQ شاملة.
+                التنسيق الصارم لمنع التداخل:
+                1. السؤال بالإنجليزية أولاً (EN).
+                2. السؤال بالعربية ثانياً (AR).
+                3. الخيارات: A, B, C, D بالإنجليزية وتحتها ترجمتها بالعربية.
+                4. الجواب الصحيح في النهاية.
+                استخدم خطوطاً تفصل بين الأسئلة."""},
+                {"role": "user", "content": f"استخرج أسئلة كثيرة من هذا المنهج:\n\n{raw_text[:10000]}"}
             ],
-            max_tokens=7000,
+            max_tokens=4000, # تقليلها قليلاً لضمان عدم حدوث Timeout
             temperature=0.3
         )
         return jsonify({'questions': completion.choices[0].message.content})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/summarize_pdf', methods=['POST'])
+def summarize_pdf():
+    try:
+        raw_text = extract_text(request.files['file'])
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": "لخص المنهج: اكتب الفقرة بالإنجليزية أولاً ثم ترجمتها العربية تحتها مباشرة."},
+                {"role": "user", "content": f"لخص بدقة:\n\n{raw_text[:10000]}"}
+            ],
+            max_tokens=4000
+        )
+        return jsonify({'summary': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'summary': str(e)}), 500
