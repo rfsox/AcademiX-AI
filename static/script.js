@@ -1,6 +1,13 @@
-// public/script.js
+// AcademiX Pro - Core Engine 2026
 
-// 1. دالة توليد التقارير الأكاديمية
+// إعدادات المكتبات (تأكد من تفعيل السطور الجديدة)
+marked.setOptions({ 
+    breaks: true, 
+    gfm: true,
+    headerIds: true
+});
+
+// 1. محرك توليد التقارير الأكاديمية
 async function generateReport() {
     const promptInput = document.getElementById('promptInput');
     const prompt = promptInput.value.trim();
@@ -17,153 +24,156 @@ async function generateReport() {
 
         const data = await response.json();
         if (data.report) {
-            renderFormattedOutput(data.report);
-            document.getElementById('pdfBtnReport').style.display = 'inline-flex';
+            renderFormattedOutput(data.report, "التقرير الأكاديمي الشامل");
+            updateUserPoints(15); // إضافة نقاط للمستخدم
         } else {
-            alert("حدث خطأ في استلام البيانات من السيرفر");
+            alert("حدث خطأ في استلام البيانات: " + (data.error || "خطأ مجهول"));
         }
     } catch (error) {
-        console.error("خطأ في التوليد:", error);
-        alert("حدث خطأ أثناء الاتصال بالسيرفر");
+        console.error("Error:", error);
+        alert("فشل الاتصال بالسيرفر الأكاديمي");
     } finally {
         showLoader(false);
     }
 }
 
-// 2. دالة تنسيق المخرج (تدعم النصوص الطويلة جداً واللغتين)
-function renderFormattedOutput(rawText) {
-    const wrapper = document.getElementById('reportWrapper');
-    const content = document.getElementById('outputContent');
-    wrapper.style.display = 'block';
+// 2. محرك الرؤية (حل الأسئلة بالصور) - إضافة جديدة
+async function solveImage() {
+    const fileInput = document.getElementById('imageUpload');
+    if (!fileInput.files[0]) return alert("يرجى اختيار صورة أولاً");
 
-    // استخدام مكتبة marked لتحويل Markdown إلى HTML
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+
+    showLoader(true);
+    try {
+        const response = await fetch('/analyze_image', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.solution) {
+            renderFormattedOutput(data.solution, "تحليل وحل الصورة الذكي");
+            updateUserPoints(20);
+        } else {
+            alert("فشل تحليل الصورة");
+        }
+    } catch (error) {
+        alert("خطأ في معالجة الصورة");
+    } finally {
+        showLoader(false);
+    }
+}
+
+// 3. تنسيق المخرجات (Markdown Engine)
+function renderFormattedOutput(rawText, title) {
+    const resultArea = document.getElementById('resultArea');
+    const content = document.getElementById('outputContent');
+    
+    resultArea.style.display = 'block';
+
+    // تحويل الماركدوان
     let htmlContent = marked.parse(rawText);
 
     content.innerHTML = `
-        <div class="report-header" style="text-align:center; border-bottom:2px solid #4facfe; margin-bottom:20px; padding-bottom:10px;">
-            <h1 style="color:#1e293b; font-family:'Cairo';">التقرير الأكاديمي الشامل</h1>
-            <p style="color:#64748b;">AcademiX AI Professional Deep Analysis - 2026</p>
+        <div class="report-header" style="text-align:center; border-bottom:3px solid var(--primary); margin-bottom:30px; padding-bottom:15px;">
+            <h1 style="color:var(--bg-dark); font-weight:900; font-size: 2rem;">${title}</h1>
+            <p style="color:#64748b; font-size: 0.9rem;">AcademiX AI Global System © 2026</p>
         </div>
-        <div class="report-body" style="color: #1e293b; font-size: 1.1rem; line-height: 1.8;">
+        <div class="markdown-body">
             ${htmlContent}
         </div>
     `;
     
-    wrapper.scrollIntoView({ behavior: 'smooth' });
+    window.scrollTo({ top: resultArea.offsetTop - 50, behavior: 'smooth' });
 }
 
-// 3. دالة حفظ الملف PDF (محسنة للملفات الطويلة جداً)
+// 4. نظام النقاط التفاعلي
+function updateUserPoints(pts) {
+    const pointsElement = document.getElementById('userPoints');
+    if (pointsElement) {
+        let currentPoints = parseInt(pointsElement.innerText);
+        let newPoints = currentPoints + pts;
+        
+        // تحريك العداد
+        let counter = currentPoints;
+        let interval = setInterval(() => {
+            if (counter >= newPoints) clearInterval(interval);
+            pointsElement.innerText = counter;
+            counter++;
+        }, 50);
+    }
+}
+
+// 5. حفظ الملف PDF (نسخة محسنة للجودة العالية)
 function exportToPDF() {
-    const element = document.getElementById('reportWrapper');
-    const btn = document.getElementById('pdfBtnReport');
+    const element = document.getElementById('outputContent');
+    const btn = document.querySelector('.action-btn.pdf');
     
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري معالجة الملف...';
-    btn.disabled = true;
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحضير...';
 
     const opt = {
-        margin: [10, 10, 10, 10],
-        filename: 'AcademiX_Full_Analysis.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            letterRendering: true,
-            logging: false
-        },
+        margin: 15,
+        filename: 'AcademiX_Academic_File.pdf',
+        image: { type: 'jpeg', quality: 1.0 },
+        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        alert("تم حفظ الملف بنجاح!");
-    }).catch(err => {
-        console.error("PDF Export Error:", err);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        alert("فشل الحفظ، حاول مرة أخرى.");
+        btn.innerHTML = originalContent;
     });
 }
 
-// 4. دالة تلخيص ملفات PDF
+// 6. تلخيص PDF
 async function summarizePDF() {
     const fileInput = document.getElementById('pdfUpload');
-    if (!fileInput || !fileInput.files[0]) return alert("يرجى اختيار ملف أولاً");
+    if (!fileInput.files[0]) return alert("يرجى رفع ملف PDF أولاً");
 
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
 
     showLoader(true);
     try {
-        const response = await fetch('/summarize_pdf', {
-            method: 'POST',
-            body: formData
-        });
-        
+        const response = await fetch('/summarize_pdf', { method: 'POST', body: formData });
         const data = await response.json();
         if (data.summary) {
-            renderFormattedOutput(data.summary);
-            document.getElementById('pdfBtnReport').style.display = 'inline-flex';
-        } else {
-            alert("لم نتمكن من تلخيص الملف");
+            renderFormattedOutput(data.summary, "ملخص المحتوى الأكاديمي");
+            updateUserPoints(10);
         }
     } catch (error) {
-        console.error("PDF Error:", error);
-        alert("حدث خطأ في معالجة الملف");
+        alert("خطأ في قراءة ملف PDF");
     } finally {
         showLoader(false);
     }
 }
 
-// --- 5. دالة توليد الأسئلة MCQ (تحديث جديد 8000 توكن) ---
-async function generateMCQs() {
-    const fileInput = document.getElementById('mcqFile'); // تأكد من وجود هذا الـ ID في ملف HTML
-    if (!fileInput || !fileInput.files[0]) return alert("يرجى اختيار ملف المحاضرة أولاً");
-
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-
-    showLoader(true);
-    try {
-        const response = await fetch('/generate_mcq', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const data = await response.json();
-        if (data.questions) {
-            // عرض الأسئلة المترجمة (إنجليزي/عربي) بنفس التنسيق الراقي
-            renderFormattedOutput(data.questions);
-            document.getElementById('pdfBtnReport').style.display = 'inline-flex';
-        } else {
-            alert("فشل في توليد الأسئلة");
-        }
-    } catch (error) {
-        console.error("MCQ Error:", error);
-        alert("حدث خطأ أثناء توليد الأسئلة");
-    } finally {
-        showLoader(false);
-    }
-}
-
-// دالة تحديث اسم ملف الأسئلة عند الاختيار (للواجهة)
-function updateMcqFileName(input) {
-    if (input.files[0]) {
-        document.getElementById('mcqFileName').innerHTML = `<b style="color: #f59e0b">جاهز:</b> ${input.files[0].name}`;
-    }
-}
-
-// 6. وظيفة الـ Loader
+// 7. وظائف واجهة المستخدم (UI)
 function showLoader(show) {
     const loader = document.getElementById('loader');
-    const wrapper = document.getElementById('reportWrapper');
-    const saveBtn = document.getElementById('pdfBtnReport');
+    const resultArea = document.getElementById('resultArea');
+    if (loader) loader.style.display = show ? 'flex' : 'none';
+    if (show && resultArea) resultArea.style.display = 'none';
+}
 
-    if (loader) loader.style.display = show ? 'block' : 'none';
-    if (show) {
-        wrapper.style.display = 'none';
-        saveBtn.style.display = 'none';
+function copyText() {
+    const text = document.getElementById('outputContent').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("تم نسخ النص بنجاح!");
+    });
+}
+
+// معاينة الصور فور اختيارها
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreviewContainer').style.display = 'block';
+            document.getElementById('imageStatusText').innerText = "تم التقاط الصورة بنجاح";
+        }
+        reader.readAsDataURL(input.files[0]);
     }
 }
