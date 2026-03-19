@@ -3,160 +3,590 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academix AI | Eng Reda</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Academix AI Pro | Eng Reda</title>
     
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
+        /* 1. المتغيرات والأساسيات */
         :root {
-            --primary: #6366f1; --primary-glow: rgba(99, 102, 241, 0.4);
-            --secondary: #a855f7; --accent: #00d2ff; --bg-dark: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc; --text-dim: #94a3b8; --sidebar-width: 260px;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary: #a855f7;
+            --accent: #00d2ff;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-hover: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --sidebar-width: 280px;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; }
-        .sidebar { width: var(--sidebar-width); background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border-left: 1px solid var(--glass-border); height: 100vh; position: fixed; right: 0; display: flex; flex-direction: column; padding: 2rem 1rem; z-index: 1000; }
-        .main-content { margin-right: var(--sidebar-width); flex: 1; padding: 2rem; max-width: calc(100vw - var(--sidebar-width)); }
-        .glass-card { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; }
-        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; }
-        .logo-icon { width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--primary-glow); }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; color: var(--text-dim); transition: 0.3s; }
-        .nav-item.active { border-right: 4px solid var(--primary); background: rgba(99, 102, 241, 0.1); color: var(--text-main); }
-        textarea { width: 100%; min-height: 150px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); border-radius: 15px; padding: 1rem; color: white; margin-bottom: 1.5rem; outline: none; resize: none; }
-        .btn-glow { padding: 12px 25px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
-        .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary-glow); }
-        .output-paper { background: white; color: #1e293b; padding: 2.5rem; border-radius: 8px; line-height: 1.7; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 1.5rem; direction: rtl; text-align: right; }
-        .loader-wrapper { display: none; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem; }
-        .dna-spinner { width: 40px; height: 40px; border: 4px solid var(--glass-border); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 768px) { body { flex-direction: column; } .sidebar { width: 100%; height: auto; position: relative; border-left: none; } .main-content { margin-right: 0; } }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 2. القائمة الجانبية (Sidebar) */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(25px);
+            border-left: 1px solid var(--glass-border);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem;
+            z-index: 1000;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 4rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-box {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px var(--primary-glow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 20px var(--primary-glow); }
+            50% { transform: scale(1.05); box-shadow: 0 0 35px var(--primary-glow); }
+            100% { transform: scale(1); box-shadow: 0 0 20px var(--primary-glow); }
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-link i { font-size: 1.2rem; transition: 0.3s; }
+
+        .nav-link:hover {
+            background: var(--glass-hover);
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.15), transparent);
+            color: white;
+            border-right: 4px solid var(--primary);
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-link.active i { color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
+
+        /* 3. المحتوى الرئيسي */
+        .main-content {
+            margin-right: var(--sidebar-width);
+            flex: 1;
+            padding: 3rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-text h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .welcome-text p { color: var(--text-dim); }
+
+        /* 4. البطاقات (Cards) */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-xl);
+            transition: 0.3s;
+        }
+
+        .glass-card:hover { border-color: rgba(99, 102, 241, 0.3); }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .card-title i {
+            width: 45px; height: 45px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px;
+        }
+
+        /* 5. الحقول والأزرار */
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            color: white;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: 0.3s;
+            margin-bottom: 2rem;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-action {
+            padding: 15px 35px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-action:active { transform: translateY(0); }
+
+        /* 6. منطقة الرفع (Drop Zone) */
+        .upload-zone {
+            border: 2px dashed var(--glass-border);
+            padding: 4rem 2rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-zone i {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+        }
+
+        /* 7. منطقة النتائج والورقة الأكاديمية */
+        .result-container {
+            display: none;
+            margin-top: 3rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .mini-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .mini-btn:hover { background: var(--glass-hover); border-color: white; }
+        .btn-copy { background: #059669; border: none; }
+        .btn-pdf { background: #dc2626; border: none; }
+        .btn-print { background: #4b5563; border: none; }
+
+        .academic-paper {
+            background: #ffffff;
+            color: #1e293b;
+            padding: 4rem;
+            border-radius: 4px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 800px;
+            line-height: 1.8;
+            font-size: 1.15rem;
+            direction: rtl;
+            text-align: right;
+            position: relative;
+        }
+
+        .academic-paper::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        /* تنسيقات الـ Markdown داخل الورقة */
+        .academic-paper h1 { color: #111827; border-bottom: 3px solid #eee; padding-bottom: 10px; margin: 2rem 0 1.5rem; }
+        .academic-paper h2 { color: #1f2937; margin-top: 2rem; }
+        .academic-paper p { margin-bottom: 1.2rem; }
+        .academic-paper ul, .academic-paper ol { margin-right: 2rem; margin-bottom: 1.5rem; }
+        .academic-paper table { width: 100%; border-collapse: collapse; margin: 2rem 0; }
+        .academic-paper th, .academic-paper td { border: 1px solid #e5e7eb; padding: 12px; text-align: right; }
+        .academic-paper th { background: #f9fafb; }
+
+        /* 8. شاشة التحميل الذكية */
+        .loader-box {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+        }
+
+        .dna-animation {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--glass-border);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 9. فوتر المطور */
+        .dev-footer {
+            margin-top: auto;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .dev-footer p { font-size: 0.8rem; color: var(--text-dim); }
+        .dev-footer strong { color: var(--accent); display: block; font-size: 1rem; margin-top: 5px; }
+
+        /* 10. استجابة الموبايل */
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; padding: 2rem 0.5rem; }
+            .logo-container h2, .nav-link span, .dev-footer { display: none; }
+            .main-content { margin-right: 80px; padding: 1.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; border-left: none; border-bottom: 1px solid var(--glass-border); padding: 1rem; }
+            .nav-menu { flex-direction: row; justify-content: space-around; }
+            .main-content { margin-right: 0; padding: 1rem; max-width: 100%; }
+            .academic-paper { padding: 1.5rem; font-size: 1rem; }
+        }
+
+        /* وضع الطباعة */
+        @media print {
+            .sidebar, .header-top, .glass-card, .action-bar, .dev-footer { display: none !important; }
+            .main-content { margin: 0; padding: 0; }
+            .academic-paper { box-shadow: none; border: none; padding: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+    <aside class="sidebar">
+        <a href="#" class="logo-container">
+            <div class="logo-box">
+                <i class="fas fa-graduation-cap fa-lg"></i>
+            </div>
             <h2>Academix</h2>
+        </a>
+
+        <nav class="nav-menu">
+            <div class="nav-link active" id="nav-gen" onclick="switchTab('generate')">
+                <i class="fas fa-pen-fancy"></i>
+                <span>توليد تقرير ذكي</span>
+            </div>
+            <div class="nav-link" id="nav-sum" onclick="switchTab('summarize')">
+                <i class="fas fa-file-invoice"></i>
+                <span>تلخيص ملف PDF</span>
+            </div>
+            <div class="nav-link" id="nav-mcq" onclick="switchTab('mcq')">
+                <i class="fas fa-tasks"></i>
+                <span>أسئلة اختبار MCQ</span>
+            </div>
+            <div class="nav-link" onclick="window.location.reload()">
+                <i class="fas fa-redo"></i>
+                <span>جلسة جديدة</span>
+            </div>
+        </nav>
+
+        <div class="dev-footer">
+            <p>تم التطوير بواسطة</p>
+            <strong>Eng Reda</strong>
+            <p style="margin-top: 10px; opacity: 0.5;">v3.0 Pro Edition</p>
         </div>
-        <div class="nav-menu">
-            <div class="nav-item active" onclick="showSection('generate')"><i class="fas fa-pen-nib"></i> <span>توليد تقرير</span></div>
-            <div class="nav-item" onclick="showSection('summarize')"><i class="fas fa-file-alt"></i> <span>تلخيص PDF</span></div>
-            <div class="nav-item" onclick="showSection('mcq')"><i class="fas fa-list-check"></i> <span>أسئلة MCQ</span></div>
-        </div>
-        <div style="margin-top: auto; text-align: center; color: var(--text-dim); font-size: 0.8rem;">
-            Developed By <br> <strong style="color: var(--accent);">Eng Reda</strong>
-        </div>
-    </nav>
+    </aside>
 
     <main class="main-content">
-        <section id="input-section" class="glass-card">
-            <div id="report-inputs">
-                <h3><i class="fas fa-magic"></i> محرك البحث الأكاديمي</h3>
-                <textarea id="report-prompt" placeholder="مثال: الأمن السيبراني في العراق..."></textarea>
-                <button class="btn-glow" onclick="generateReport()">توليد الآن <i class="fas fa-rocket"></i></button>
+        
+        <header class="header-top">
+            <div class="welcome-text">
+                <h1 id="page-title">مرحباً بك في المحرك الأكاديمي</h1>
+                <p id="page-desc">اختر الخدمة المطلوبة لبدء المعالجة باستخدام ذكاء اصطناعي 6000 توكن.</p>
             </div>
+            <div class="user-status">
+                <span class="mini-btn"><i class="fas fa-circle" style="color:#10b981; font-size:0.6rem;"></i> متصل الآن</span>
+            </div>
+        </header>
 
-            <div id="file-inputs" style="display:none;">
-                <h3 id="file-title">معالجة ملفات PDF</h3>
-                <div style="border: 2px dashed var(--glass-border); padding: 2rem; text-align: center; border-radius: 15px; margin: 1rem 0; cursor: pointer;" onclick="document.getElementById('pdf-file').click()">
-                    <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--primary);"></i>
-                    <p id="file-status">اضغط لرفع الملف</p>
-                    <input type="file" id="pdf-file" hidden accept=".pdf" onchange="document.getElementById('file-status').innerText = this.files[0].name">
-                </div>
-                <button id="process-btn" class="btn-glow">بدء المعالجة <i class="fas fa-bolt"></i></button>
+        <section id="section-generate" class="glass-card">
+            <div class="card-title">
+                <i class="fas fa-brain"></i>
+                <h3>اكتب موضوع البحث</h3>
+            </div>
+            <textarea id="prompt-input" placeholder="مثال: أثر الذكاء الاصطناعي في هندسة البرمجيات الحديثة وواقع التطبيق في الجامعات العربية..."></textarea>
+            <button class="btn-action" onclick="actionGenerate()">
+                <span>بدء التوليد الأكاديمي</span>
+                <i class="fas fa-sparkles"></i>
+            </button>
+        </section>
+
+        <section id="section-files" class="glass-card" style="display:none;">
+            <div class="card-title">
+                <i class="fas fa-file-import"></i>
+                <h3 id="file-heading">رفع وتلخيص الملفات</h3>
+            </div>
+            <div class="upload-zone" onclick="document.getElementById('pdf-input').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h4 id="status-text">اسحب الملف هنا أو انقر للرفع</h4>
+                <p style="color:var(--text-dim); margin-top:10px;">يدعم ملفات PDF لغاية 20 صفحة</p>
+                <input type="file" id="pdf-input" hidden accept=".pdf" onchange="updateFileStatus(this)">
+            </div>
+            <div style="margin-top: 2rem;">
+                <button class="btn-action" id="file-action-btn" onclick="actionFile()">
+                    <span>بدء المعالجة الآن</span>
+                    <i class="fas fa-bolt"></i>
+                </button>
             </div>
         </section>
 
-        <div id="loader" class="loader-wrapper">
-            <div class="dna-spinner"></div>
-            <p>جاري المعالجة (6000 توكن)...</p>
+        <div id="main-loader" class="loader-box">
+            <div class="dna-animation"></div>
+            <h3 style="color:var(--primary);">جاري تحليل البيانات...</h3>
+            <p style="color:var(--text-dim); margin-top:10px;">قد تستغرق العملية دقيقة واحدة لتوليد 6000 توكن.</p>
         </div>
 
-        <div id="result-area" style="display:none;">
-            <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
-                <button onclick="copyContent()" class="btn-glow" style="background: #10b981; padding: 8px 15px;">
-                    <i class="fas fa-copy"></i> نسخ النص
-                </button>
-                <button onclick="saveAsPDF()" class="btn-glow" style="background: #ef4444; padding: 8px 15px;">
-                    <i class="fas fa-file-pdf"></i> حفظ كـ PDF
-                </button>
+        <div id="result-area" class="result-container">
+            <div class="action-bar">
+                <button onclick="copyToClipboard()" class="mini-btn btn-copy"><i class="fas fa-copy"></i> نسخ النص</button>
+                <button onclick="downloadAsPDF()" class="mini-btn btn-pdf"><i class="fas fa-file-pdf"></i> حفظ كـ PDF</button>
+                <button onclick="window.print()" class="mini-btn btn-print"><i class="fas fa-print"></i> طباعة فورية</button>
             </div>
-            <div id="output-content" class="output-paper"></div>
+            <div id="paper-content" class="academic-paper">
+                </div>
+            
+            <div style="text-align: center; margin-top: 3rem; color: var(--text-dim); padding-bottom: 5rem;">
+                <p>© كافة الحقوق محفوظة - Academix AI Pro - بإشراف المهندس رضا</p>
+            </div>
         </div>
+
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        function showSection(mode) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('report-inputs').style.display = (mode === 'generate') ? 'block' : 'none';
-            document.getElementById('file-inputs').style.display = (mode !== 'generate') ? 'block' : 'none';
-            if(mode === 'summarize') document.getElementById('process-btn').onclick = summarizePDF;
-            if(mode === 'mcq') document.getElementById('process-btn').onclick = generateMCQ;
-            document.getElementById('result-area').style.display = 'none';
+        // --- متغيرات الحالة ---
+        let activeTab = 'generate';
+
+        // --- وظائف التنقل ---
+        function switchTab(tab) {
+            activeTab = tab;
+            // تحديث الأزرار
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if(tab === 'generate') document.getElementById('nav-gen').classList.add('active');
+            if(tab === 'summarize') document.getElementById('nav-sum').classList.add('active');
+            if(tab === 'mcq') document.getElementById('nav-mcq').classList.add('active');
+
+            // تحديث العناوين والأقسام
+            const genSec = document.getElementById('section-generate');
+            const fileSec = document.getElementById('section-files');
+            const resultArea = document.getElementById('result-area');
+            
+            resultArea.style.display = 'none';
+
+            if(tab === 'generate') {
+                genSec.style.display = 'block';
+                fileSec.style.display = 'none';
+                document.getElementById('page-title').innerText = "محرك التوليد الأكاديمي";
+            } else {
+                genSec.style.display = 'none';
+                fileSec.style.display = 'block';
+                document.getElementById('file-heading').innerText = tab === 'summarize' ? "تلخيص ملف PDF" : "توليد أسئلة MCQ";
+                document.getElementById('page-title').innerText = tab === 'summarize' ? "مساعد التلخيص الذكي" : "مولد الاختبارات الذكي";
+            }
         }
 
-        async function generateReport() {
-            const p = document.getElementById('report-prompt').value;
-            if(!p) return alert("اكتب الموضوع أولاً");
-            apiCall('/generate', { prompt: p }, 'report');
+        function updateFileStatus(input) {
+            if(input.files.length > 0) {
+                document.getElementById('status-text').innerText = "تم اختيار: " + input.files[0].name;
+                document.getElementById('status-text').style.color = "var(--primary)";
+            }
         }
 
-        async function summarizePDF() { fileApiCall('/summarize_pdf', 'summary'); }
-        async function generateMCQ() { fileApiCall('/generate_mcq', 'questions'); }
+        // --- وظائف الطلبات (API) ---
 
-        async function apiCall(url, body, resKey) {
-            toggleLoader(true);
+        async function actionGenerate() {
+            const prompt = document.getElementById('prompt-input').value;
+            if(!prompt) return alert("يرجى إدخال عنوان البحث أولاً.");
+
+            showLoader(true);
             try {
-                const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-                const d = await r.json();
-                display(d[resKey]);
-            } catch(e) { alert("خطأ في الاتصال"); }
-            toggleLoader(false);
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await response.json();
+                renderResult(data.report);
+            } catch (error) {
+                alert("حدث خطأ في الاتصال بالسيرفر.");
+            }
+            showLoader(false);
         }
 
-        async function fileApiCall(url, resKey) {
-            const f = document.getElementById('pdf-file').files[0];
-            if(!f) return alert("ارفع ملف أولاً");
-            const fd = new FormData(); fd.append('file', f);
-            toggleLoader(true);
+        async function actionFile() {
+            const fileInput = document.getElementById('pdf-input');
+            if(fileInput.files.length === 0) return alert("يرجى اختيار ملف PDF.");
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const endpoint = (activeTab === 'summarize') ? '/summarize_pdf' : '/generate_mcq';
+            const resKey = (activeTab === 'summarize') ? 'summary' : 'questions';
+
+            showLoader(true);
             try {
-                const r = await fetch(url, { method:'POST', body:fd });
-                const d = await r.json();
-                display(d[resKey] || d.summary || d.questions);
-            } catch(e) { alert("خطأ في السيرفر"); }
-            toggleLoader(false);
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                renderResult(data[resKey] || data.error);
+            } catch (error) {
+                alert("فشلت عملية معالجة الملف.");
+            }
+            showLoader(false);
         }
 
-        function display(content) {
-            document.getElementById('output-content').innerHTML = marked.parse(content || "لا توجد نتائج");
-            document.getElementById('result-area').style.display = 'block';
-            document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+        // --- وظائف العرض والتحكم ---
+
+        function renderResult(content) {
+            const paper = document.getElementById('paper-content');
+            const resultArea = document.getElementById('result-area');
+            
+            // استخدام مكتبة Marked لتحويل الماركداون لـ HTML
+            paper.innerHTML = marked.parse(content || "حدث خطأ أثناء جلب البيانات.");
+            
+            resultArea.style.display = 'block';
+            window.scrollTo({ top: resultArea.offsetTop - 50, behavior: 'smooth' });
         }
 
-        function toggleLoader(s) { document.getElementById('loader').style.display = s ? 'flex' : 'none'; }
-
-        // ميزة النسخ [cite: 202]
-        function copyContent() {
-            const text = document.getElementById('output-content').innerText;
-            navigator.clipboard.writeText(text).then(() => alert("تم نسخ النص بنجاح!"));
+        function showLoader(show) {
+            document.getElementById('main-loader').style.display = show ? 'flex' : 'none';
+            if(show) document.getElementById('result-area').style.display = 'none';
         }
 
-        // ميزة حفظ PDF [cite: 177]
-        function saveAsPDF() {
-            const element = document.getElementById('output-content');
-            const opt = {
-                margin: 0.5,
-                filename: 'Academix_Report.pdf',
+        function copyToClipboard() {
+            const text = document.getElementById('paper-content').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("تم نسخ النص بنجاح إلى الحافظة!");
+            });
+        }
+
+        function downloadAsPDF() {
+            const element = document.getElementById('paper-content');
+            const options = {
+                margin: [0.5, 0.5],
+                filename: 'Academix_Report_Pro.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(options).from(element).save();
         }
     </script>
 </body>
