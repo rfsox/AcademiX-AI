@@ -97,8 +97,23 @@
 
         <div id="imageSection" class="section-container" style="display:none;">
              <div class="glass-card" style="text-align: center;">
-                <h2><i class="fas fa-eye"></i> حل الصور</h2>
-                <p>ميزة رؤية الحاسوب قيد التفعيل الأكاديمي...</p>
+                <h2><i class="fas fa-camera" style="color: #e74c3c"></i> حل الأسئلة بالصور</h2>
+                <p>التقط صورة للسؤال أو ارفعها وسأقوم بحلها فوراً باستخدام تقنية الرؤية.</p>
+                
+                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed #e74c3c; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px;" 
+                     onclick="document.getElementById('imageUpload').click()">
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                    <i class="fas fa-camera-retro fa-3x" style="color: #e74c3c; margin-bottom: 15px;"></i>
+                    <p id="imageStatusText" style="margin:0; color: var(--text-dim);">اضغط لالتقاط صورة للسؤال</p>
+                </div>
+
+                <div id="imagePreviewContainer" style="display:none; margin-bottom: 20px;">
+                    <img id="previewImg" style="max-width: 100%; max-height: 250px; border-radius: 10px; border: 2px solid #e74c3c;">
+                    <br>
+                    <button class="btn btn-primary" style="background: #e74c3c; margin-top: 15px;" onclick="solveImage()">
+                        <i class="fas fa-brain"></i> تحليل وحل الصورة (+20)
+                    </button>
+                </div>
              </div>
         </div>
 
@@ -122,7 +137,6 @@
     <script>
         marked.setOptions({ breaks: true, gfm: true });
 
-        // تبديل الأقسام
         function showSection(sectionId, element) {
             document.querySelectorAll('.section-container').forEach(sec => sec.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -136,6 +150,7 @@
             document.getElementById('pdfBtnReport').style.display = 'none';
             document.getElementById('loader').style.display = 'none';
             document.getElementById('outputContent').innerHTML = '';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
         }
 
         function showLoader(show) {
@@ -146,11 +161,9 @@
             }
         }
 
-        // --- وظيفة توليد التقارير ---
         async function generateReport() {
             const prompt = document.getElementById('promptInput').value;
             if (!prompt) return alert("يرجى إدخال موضوع البحث");
-
             showLoader(true);
             try {
                 const response = await fetch('/generate', {
@@ -164,15 +177,12 @@
             showLoader(false);
         }
 
-        // --- وظيفة التلخيص ---
         async function handleFileUpload(input) {
             if (!input.files[0]) return;
             document.getElementById('fileName').innerHTML = `<b style="color: var(--secondary)">تم اختيار:</b> ${input.files[0].name}`;
-            
             showLoader(true);
             const formData = new FormData();
             formData.append('file', input.files[0]);
-
             try {
                 const response = await fetch('/summarize_pdf', { method: 'POST', body: formData });
                 const data = await response.json();
@@ -181,7 +191,6 @@
             showLoader(false);
         }
 
-        // --- وظيفة الأسئلة MCQ ---
         function updateMcqFileName(input) {
             if (input.files[0]) {
                 document.getElementById('mcqFileName').innerHTML = `<b style="color: var(--accent)">جاهز:</b> ${input.files[0].name}`;
@@ -191,11 +200,9 @@
         async function generateMCQs() {
             const fileInput = document.getElementById('mcqFile');
             if (!fileInput.files[0]) return alert("يرجى اختيار ملف أولاً");
-
             showLoader(true);
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
-
             try {
                 const response = await fetch('/generate_mcq', { method: 'POST', body: formData });
                 const data = await response.json();
@@ -204,7 +211,33 @@
             showLoader(false);
         }
 
-        // عرض النتائج وتنسيقها
+        // --- وظائف ميزة الصور المضافة ---
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').style.display = 'block';
+                    document.getElementById('imageStatusText').innerText = "تم اختيار: " + input.files[0].name;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function solveImage() {
+            const fileInput = document.getElementById('imageUpload');
+            if (!fileInput.files[0]) return alert("يرجى رفع صورة أولاً");
+            showLoader(true);
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            try {
+                const response = await fetch('/analyze_image', { method: 'POST', body: formData });
+                const data = await response.json();
+                renderResult(data.solution || data.error);
+            } catch (e) { renderResult("حدث خطأ أثناء تحليل الصورة"); }
+            showLoader(false);
+        }
+
         function renderResult(content) {
             document.getElementById('reportWrapper').style.display = 'block';
             document.getElementById('outputContent').innerHTML = marked.parse(content);
