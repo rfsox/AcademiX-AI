@@ -5,97 +5,96 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
+# إعداد التطبيق
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
-# تأكد من وضع المفتاح في إعدادات Vercel باسم GROQ_API_KEY
+# جلب المفتاح من إعدادات Vercel
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
-# نستخدم الموديلات الأسرع لتجنب الـ Timeout في Vercel
-MODEL_QUICK = "llama-3.1-8b-instant"   # سريع جداً للأسئلة
-MODEL_POWER = "llama-3.3-70b-versatile" # قوي جداً للتلخيص والتقارير
+# استخدام موديل 8B لأنه الأسرع عالمياً ويمنع خطأ الـ 500
+MODEL_FAST = "llama-3.1-8b-instant" 
+MODEL_DEEP = "llama-3.3-70b-versatile"
 
-def get_pdf_text(file):
-    """استخراج النص بذكاء من أول 10 صفحات لضمان السرعة"""
+def extract_pdf_text(file):
+    """استخراج النص بسرعة من أول 10 صفحات فقط لضمان استقرار السيرفر"""
     text = ""
     try:
         file.seek(0)
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            pages = pdf.pages[:10] # نكتفي بـ 10 صفحات لضمان استقرار السيرفر المجاني
-            for page in pages:
+            for page in pdf.pages[:10]:
                 content = page.extract_text()
                 if content: text += content + "\n"
     except: pass
     return text
 
 @app.route('/')
-def home():
+def index():
     return render_template('index.html')
 
 @app.route('/generate', methods=['POST'])
-def generate_report():
+def generate():
     try:
         data = request.get_json()
-        prompt = data.get('prompt', '')
-        
-        chat_completion = client.chat.completions.create(
-            model=MODEL_POWER,
+        prompt = data.get('prompt')
+        completion = client.chat.completions.create(
+            model=MODEL_DEEP,
             messages=[
-                {"role": "system", "content": "أنت خبير أكاديمي محترف. اكتب تقارير طويلة ومنظمة بأسلوب Markdown."},
-                {"role": "user", "content": f"اكتب تقريراً مفصلاً عن: {prompt}"}
+                {"role": "system", "content": "أنت خبير أكاديمي. اكتب تقريراً مفصلاً ومنظماً بالعربية."},
+                {"role": "user", "content": f"اكتب بحثاً عن: {prompt}"}
             ],
-            max_tokens=4000
+            max_tokens=3000
         )
-        return jsonify({'report': chat_completion.choices[0].message.content})
+        return jsonify({'report': completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'report': f"Error: {str(e)}"}), 500
+        return jsonify({'report': str(e)}), 500
 
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
-        text = get_pdf_text(request.files['file'])
-        if not text: return jsonify({'summary': "تعذر قراءة الملف"}), 400
-
-        response = client.chat.completions.create(
-            model=MODEL_POWER,
+        raw_text = extract_pdf_text(request.files['file'])
+        if not raw_text: return jsonify({'summary': "تعذر قراءة الملف"}), 400
+        
+        completion = client.chat.completions.create(
+            model=MODEL_DEEP,
             messages=[
-                {"role": "system", "content": "أنت خبير تلخيص أكاديمي. اشرح المادة العلمية بأسلوب فقرات مترجمة (عربي/إنجليزي) وضع المصطلحات المهمة بين قوسين."},
-                {"role": "user", "content": f"لخص هذا النص شرحاً وافياً:\n\n{text[:10000]}"}
+                {"role": "system", "content": "لخص النص بأسلوب شرح أكاديمي مفصل (عربي/إنجليزي)."},
+                {"role": "user", "content": f"اشرح النص التالي:\n\n{raw_text[:7000]}"}
             ],
-            max_tokens=3000
+            max_tokens=2500
         )
-        return jsonify({'summary': response.choices[0].message.content})
+        return jsonify({'summary': completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'summary': f"خطأ في السيرفر: {str(e)}"}), 500
+        return jsonify({'summary': str(e)}), 500
 
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
     try:
-        text = get_pdf_text(request.files['file'])
-        if not text: return jsonify({'error': "الملف فارغ"}), 400
+        raw_text = extract_pdf_text(request.files['file'])
+        if not raw_text: return jsonify({'error': "الملف فارغ"}), 400
 
-        # هنا السر في السرعة: نستخدم الموديل الاصغر 8b لكي لا يحدث Timeout
-        response = client.chat.completions.create(
-            model=MODEL_QUICK,
+        # السر هنا: طلب 10 أسئلة فقط لضمان الرد في أقل من 5 ثوانٍ
+        completion = client.chat.completions.create(
+            model=MODEL_FAST,
             messages=[
-                {"role": "system", "content": """أنت محترف أسئلة MCQ. صمم 15 سؤالاً من النص المرفق.
-                يجب أن يكون التنسيق ثنائي اللغة تماماً كالتالي:
-                EN: Question text?
+                {"role": "system", "content": """أنشئ 10 أسئلة MCQ بدقة من المنهج.
+                التنسيق:
+                EN: Question?
                 AR: ترجمة السؤال؟
-                A) Option EN / الترجمة العربية
-                B) Option EN / الترجمة العربية
-                C) Option EN / الترجمة العربية
-                D) Option EN / الترجمة العربية
+                A) Option / الترجمة
+                B) Option / الترجمة
+                C) Option / الترجمة
+                D) Option / الترجمة
                 Answer: [الخيار الصحيح]"""},
-                {"role": "user", "content": f"أنشئ 15 سؤالاً مترجماً بدقة من المنهج التالي:\n\n{text[:8000]}"}
+                {"role": "user", "content": f"أنشئ 10 أسئلة مترجمة من هذا النص:\n\n{raw_text[:7000]}"}
             ],
-            temperature=0.3, # لزيادة الدقة في المنهج
-            max_tokens=3000
+            temperature=0.2,
+            max_tokens=2500
         )
-        return jsonify({'questions': response.choices[0].message.content})
+        return jsonify({'questions': completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'error': f"Server Error: {str(e)}"}), 500
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
