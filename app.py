@@ -1,6 +1,6 @@
 import os
 import io
-import PyPDF2 # تم فصل التعليق لضمان سلامة الاستيراد في Vercel
+import PyPDF2
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
@@ -10,6 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 # جلب مفتاح API من إعدادات Vercel
+# تأكد من إضافة GROQ_API_KEY في الـ Environment Variables على Vercel
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
@@ -23,6 +24,9 @@ def index():
 def generate():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'result': 'فشل في قراءة البيانات المرسلة'}), 400
+            
         prompt = data.get('prompt', '')
 
         if not prompt:
@@ -30,51 +34,61 @@ def generate():
 
         system_content = (
             "You are a professional academic researcher. "
-            "If the user asks in Arabic, you MUST reply with a very detailed, long, and well-formatted academic report in Arabic. "
-            "If the user asks in English, you MUST reply with a very detailed, long, and well-formatted academic report in English. "
-            "Use Markdown for formatting, including bold titles and clear sections."
+            "Reply in the language used by the user. "
+            "Provide a very detailed academic report with clear headings, "
+            "bullet points, and academic citations in Markdown format."
         )
 
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile", # الموديل الأحدث والمستقر
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=4000
+            max_tokens=4000 # زيادة السعة لتقارير أطول
         )
 
         return jsonify({'result': completion.choices[0].message.content})
 
     except Exception as e:
-        return jsonify({'result': f"حدث خطأ في النظام: {str(e)}"})
+        print(f"Error in /generate: {str(e)}") # يظهر في سجلات Vercel Logs
+        return jsonify({'result': f"حدث خطأ في النظام: {str(e)}"}), 500
 
 # --- الميزة الثانية: تلخيص ملفات PDF ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
         if 'file' not in request.files:
-            return jsonify({'result': 'لم يتم العثور على ملف مرفوع'})
+            return jsonify({'result': 'لم يتم العثور على ملف مرفوع'}), 400
         
         file = request.files['file']
         if file.filename == '':
-            return jsonify({'result': 'اسم الملف فارغ'})
+            return jsonify({'result': 'اسم الملف فارغ'}), 400
 
-        # قراءة النص من الـ PDF في الذاكرة لسرعة الأداء على Vercel
-        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file.read()))
+        # قراءة النص من الـ PDF في الذاكرة
+        pdf_stream = io.BytesIO(file.read())
+        pdf_reader = PyPDF2.PdfReader(pdf_stream)
+        
         extracted_text = ""
-        for page in pdf_reader.pages:
-            extracted_text += page.extract_text()
+        # استخراج أول 10 صفحات فقط لتجنب استهلاك الذاكرة العالي في Vercel
+        max_pages = min(len(pdf_reader.pages), 10)
+        for i in range(max_pages):
+            page_text = pdf_reader.pages[i].extract_text()
+            if page_text:
+                extracted_text += page_text
 
         if not extracted_text.strip():
-            return jsonify({'result': 'تأكد أن ملف الـ PDF يحتوي على نصوص وليس صوراً فقط.'})
+            return jsonify({'result': 'فشل استخراج النص. تأكد أن الملف يحتوي على نص وليس صوراً.'})
+
+        # تنظيف النص وتحديده لعدم تجاوز حدود الـ Token
+        clean_text = extracted_text[:10000]
 
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "أنت مساعد أكاديمي ذكي. قم بتلخيص النص الأكاديمي التالي بأسلوب نقاط مركزة واحترافية باللغة العربية."},
-                {"role": "user", "content": f"لخص هذا النص:\n\n{extracted_text[:12000]}"}
+                {"role": "system", "content": "أنت مساعد أكاديمي ذكي. لخص النص بأسلوب نقاط احترافية وشاملة باللغة العربية."},
+                {"role": "user", "content": f"لخص المحتوى التالي تلخيصاً أكاديمياً:\n\n{clean_text}"}
             ],
             temperature=0.5
         )
@@ -82,8 +96,11 @@ def summarize_pdf():
         return jsonify({'result': completion.choices[0].message.content})
 
     except Exception as e:
-        return jsonify({'result': f"خطأ أثناء معالجة الملف: {str(e)}"})
+        print(f"Error in /summarize_pdf: {str(e)}")
+        return jsonify({'result': f"خطأ أثناء معالجة الملف: {str(e)}"}), 500
 
-# نقطة الانطلاق الأساسية لـ Vercel
+# ضروري لعمل Vercel بشكل صحيح
+application = app
+
 if __name__ == '__main__':
     app.run(debug=True)
