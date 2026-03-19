@@ -18,9 +18,7 @@ async function generateReport() {
         const data = await response.json();
         if (data.report) {
             renderFormattedOutput(data.report);
-            // تفعيل وإظهار زر الحفظ
-            const saveBtn = document.getElementById('pdfBtnReport');
-            saveBtn.style.display = 'inline-flex';
+            document.getElementById('pdfBtnReport').style.display = 'inline-flex';
         } else {
             alert("حدث خطأ في استلام البيانات من السيرفر");
         }
@@ -51,22 +49,20 @@ function renderFormattedOutput(rawText) {
         </div>
     `;
     
-    // التمرير بسلاسة إلى بداية النتيجة
     wrapper.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 3. دالة حفظ الملف PDF (محسنة للملفات الطويلة جداً لضمان عدم ضياع التنسيق)
+// 3. دالة حفظ الملف PDF (محسنة للملفات الطويلة جداً)
 function exportToPDF() {
     const element = document.getElementById('reportWrapper');
     const btn = document.getElementById('pdfBtnReport');
     
-    // تغيير حالة الزر للتفاعل مع المستخدم
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري معالجة الملف...';
     btn.disabled = true;
 
     const opt = {
-        margin: [10, 10, 10, 10], // تقليل الهوامش للملخصات الطويلة
+        margin: [10, 10, 10, 10],
         filename: 'AcademiX_Full_Analysis.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
@@ -76,7 +72,6 @@ function exportToPDF() {
             logging: false
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        // خاصية حيوية لضمان عدم تقطع النصوص الطويلة بين الصفحات
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
@@ -92,7 +87,7 @@ function exportToPDF() {
     });
 }
 
-// 4. دالة تلخيص ملفات PDF (محدثة لدعم النتائج الطويلة جداً)
+// 4. دالة تلخيص ملفات PDF
 async function summarizePDF() {
     const fileInput = document.getElementById('pdfUpload');
     if (!fileInput || !fileInput.files[0]) return alert("يرجى اختيار ملف أولاً");
@@ -107,33 +102,66 @@ async function summarizePDF() {
             body: formData
         });
         
-        if (!response.ok) throw new Error("Server Error");
-
         const data = await response.json();
         if (data.summary) {
             renderFormattedOutput(data.summary);
-            // إظهار زر الحفظ فوراً بعد انتهاء التلخيص
-            const saveBtn = document.getElementById('pdfBtnReport');
-            saveBtn.style.display = 'inline-flex';
+            document.getElementById('pdfBtnReport').style.display = 'inline-flex';
         } else {
-            alert("لم نتمكن من تلخيص الملف، جرب ملفاً آخر");
+            alert("لم نتمكن من تلخيص الملف");
         }
     } catch (error) {
         console.error("PDF Error:", error);
-        alert("فشل في معالجة الملف. تأكد من جودة النص داخل الـ PDF.");
+        alert("حدث خطأ في معالجة الملف");
     } finally {
         showLoader(false);
     }
 }
 
-// 5. وظيفة الـ Loader (المحسنة)
+// --- 5. دالة توليد الأسئلة MCQ (تحديث جديد 8000 توكن) ---
+async function generateMCQs() {
+    const fileInput = document.getElementById('mcqFile'); // تأكد من وجود هذا الـ ID في ملف HTML
+    if (!fileInput || !fileInput.files[0]) return alert("يرجى اختيار ملف المحاضرة أولاً");
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    showLoader(true);
+    try {
+        const response = await fetch('/generate_mcq', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.questions) {
+            // عرض الأسئلة المترجمة (إنجليزي/عربي) بنفس التنسيق الراقي
+            renderFormattedOutput(data.questions);
+            document.getElementById('pdfBtnReport').style.display = 'inline-flex';
+        } else {
+            alert("فشل في توليد الأسئلة");
+        }
+    } catch (error) {
+        console.error("MCQ Error:", error);
+        alert("حدث خطأ أثناء توليد الأسئلة");
+    } finally {
+        showLoader(false);
+    }
+}
+
+// دالة تحديث اسم ملف الأسئلة عند الاختيار (للواجهة)
+function updateMcqFileName(input) {
+    if (input.files[0]) {
+        document.getElementById('mcqFileName').innerHTML = `<b style="color: #f59e0b">جاهز:</b> ${input.files[0].name}`;
+    }
+}
+
+// 6. وظيفة الـ Loader
 function showLoader(show) {
     const loader = document.getElementById('loader');
     const wrapper = document.getElementById('reportWrapper');
     const saveBtn = document.getElementById('pdfBtnReport');
 
     if (loader) loader.style.display = show ? 'block' : 'none';
-    
     if (show) {
         wrapper.style.display = 'none';
         saveBtn.style.display = 'none';
