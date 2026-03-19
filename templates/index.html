@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="/static/style.css?v=1.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -17,31 +17,34 @@
 
     <aside class="sidebar">
         <div class="logo-area">
-            <h2>AcademiX AI</h2>
-            <small style="color: var(--text-dim);">الذكاء الأكاديمي المتطور</small>
+            <div class="logo-icon"><i class="fas fa-microchip"></i></div>
+            <div>
+                <h2>AcademiX AI</h2>
+                <small>الجيل الثالث من الذكاء الأكاديمي</small>
+            </div>
         </div>
         
         <nav class="nav-menu">
             <div class="nav-item active" onclick="showSection('reportSection', this)">
-                <i class="fas fa-magic"></i> <span>مولد التقارير</span>
+                <i class="fas fa-feather-pointed"></i> <span>مولد التقارير</span>
             </div>
             <div class="nav-item" onclick="showSection('pdfSection', this)">
-                <i class="fas fa-file-pdf"></i> <span>تلخيص PDF</span>
+                <i class="fas fa-book-open"></i> <span>تلخيص المحاضرات</span>
             </div>
             <div class="nav-item" onclick="showSection('mcqSection', this)">
-                <i class="fas fa-tasks"></i> <span>مصنع MCQ</span>
+                <i class="fas fa-clipboard-list"></i> <span>صانع الاختبارات</span>
             </div>
             <div class="nav-item" onclick="showSection('imageSection', this)">
-                <i class="fas fa-camera"></i> <span>حل الصور</span>
+                <i class="fas fa-brain"></i> <span>حل الصور الذكي</span>
             </div>
         </nav>
         
         <div class="stats-card">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-award" style="color: var(--accent); font-size: 1.5rem;"></i>
+            <div class="rank-info">
+                <i class="fas fa-medal"></i>
                 <div>
-                    <p style="margin:0; font-weight:bold; font-size: 0.9rem;">النقاط: <span id="userPoints">120</span></p>
-                    <small style="font-size: 0.7rem; opacity: 0.8;">اللقب: باحث ناشئ</small>
+                    <p>النقاط: <span id="userPoints">120</span></p>
+                    <div class="progress-mini"><div class="fill" style="width: 70%"></div></div>
                 </div>
             </div>
         </div>
@@ -49,210 +52,201 @@
 
     <main class="main-content">
         
-        <div id="reportSection" class="section-container">
-            <div class="glass-card">
-                <h2><i class="fas fa-pen-nib" style="color: var(--primary)"></i> مولد التقارير الموثقة</h2>
-                <p>نظام توليد أبحاث متكامل مع المراجع الأكاديمية الدقيقة.</p>
-                <div class="input-area">
-                    <textarea id="promptInput" placeholder="اكتب موضوع البحث هنا... مثال: مستقبل الطاقة المتجددة في العراق"></textarea>
+        <section id="reportSection" class="section-container">
+            <div class="glass-card main-card">
+                <div class="card-header">
+                    <i class="fas fa-pen-fancy"></i>
+                    <h3>توليد الأبحاث والتقارير</h3>
                 </div>
-                <div class="action-btns">
-                    <button class="btn btn-primary" onclick="generateReport()">
-                        <i class="fas fa-rocket"></i> توليد التقرير (+10)
-                    </button>
+                <div class="input-group">
+                    <textarea id="promptInput" placeholder="اكتب عنوان البحث بالتفصيل... (مثلاً: دور النانو تكنولوجي في تنقية المياه)"></textarea>
+                    <div class="options-bar">
+                        <span><i class="fas fa-language"></i> العربية / English</span>
+                        <span><i class="fas fa-quote-right"></i> مراجع أكاديمية</span>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <div id="pdfSection" class="section-container" style="display:none;">
-            <div class="glass-card">
-                <h2><i class="fas fa-file-alt" style="color: var(--secondary)"></i> تلخيص المحاضرات الذكي</h2>
-                <p>ارفع ملفك وسأقوم بتحليله وتلخيصه بلغتين (عربي - إنجليزي) بشكل مفصل.</p>
-                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed var(--primary); padding: 30px; border-radius: 15px; text-align: center; transition: 0.3s;" 
-                     onclick="document.getElementById('pdfUpload').click()">
-                    <input type="file" id="pdfUpload" accept=".pdf" style="display: none;" onchange="handleFileUpload(this)">
-                    <i class="fas fa-cloud-arrow-up fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
-                    <p id="fileName" style="margin:0; color: var(--text-dim);">اسحب الملف هنا أو اضغط للاختيار</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="mcqSection" class="section-container" style="display:none;">
-             <div class="glass-card">
-                <h2><i class="fas fa-vial" style="color: var(--accent)"></i> مصنع الاختبارات الذكي</h2>
-                <p>ارفع ملف المحاضرة وسأقوم بإنشاء أسئلة (إنجليزي - عربي) مترجم بالكامل.</p>
-                
-                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed var(--accent); padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px;" 
-                     onclick="document.getElementById('mcqFile').click()">
-                    <input type="file" id="mcqFile" accept=".pdf" style="display: none;" onchange="updateMcqFileName(this)">
-                    <i class="fas fa-file-circle-question fa-3x" style="color: var(--accent); margin-bottom: 15px;"></i>
-                    <p id="mcqFileName" style="margin:0; color: var(--text-dim);"> اضغط هنا لرفع ملف الأسئلة (PDF)</p>
-                </div>
-
-                <button class="btn btn-primary" style="background: var(--accent); border:none;" onclick="generateMCQs()">
-                    <i class="fas fa-wand-magic-sparkles"></i> توليد الأسئلة المترجم (+15)
+                <button class="btn-glow" onclick="generateReport()">
+                    <span>بدء التوليد الذكي</span>
+                    <i class="fas fa-sparkles"></i>
                 </button>
-             </div>
-        </div>
-
-        <div id="imageSection" class="section-container" style="display:none;">
-             <div class="glass-card" style="text-align: center;">
-                <h2><i class="fas fa-camera" style="color: #e74c3c"></i> حل الأسئلة بالصور</h2>
-                <p>التقط صورة للسؤال أو ارفعها وسأقوم بحلها فوراً باستخدام تقنية الرؤية.</p>
-                
-                <div class="pdf-upload-box" style="cursor:pointer; border: 2px dashed #e74c3c; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px;" 
-                     onclick="document.getElementById('imageUpload').click()">
-                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="previewImage(this)">
-                    <i class="fas fa-camera-retro fa-3x" style="color: #e74c3c; margin-bottom: 15px;"></i>
-                    <p id="imageStatusText" style="margin:0; color: var(--text-dim);">اضغط لالتقاط صورة للسؤال</p>
-                </div>
-
-                <div id="imagePreviewContainer" style="display:none; margin-bottom: 20px;">
-                    <img id="previewImg" style="max-width: 100%; max-height: 250px; border-radius: 10px; border: 2px solid #e74c3c;">
-                    <br>
-                    <button class="btn btn-primary" style="background: #e74c3c; margin-top: 15px;" onclick="solveImage()">
-                        <i class="fas fa-brain"></i> تحليل وحل الصورة (+20)
-                    </button>
-                </div>
-             </div>
-        </div>
-
-        <div id="loader" style="display:none; width: 100%; text-align: center; margin-top: 40px; padding: 20px;">
-            <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary);"></i>
-            <p style="margin-top: 15px; font-weight: bold; color: var(--secondary);">جاري المعالجة الأكاديمية العميقة... يرجى الانتظار</p>
-        </div>
-
-        <div id="resultArea" style="width:100%; display: flex; flex-direction: column; align-items: center;">
-            <button id="pdfBtnReport" class="btn btn-primary" style="display:none; background: #27ae60; margin-bottom: 20px; width: auto;" onclick="exportToPDF()">
-                <i class="fas fa-file-pdf"></i> حفظ النتيجة كـ PDF
-            </button>
-
-            <div id="reportWrapper" style="display:none; width: 100%;">
-                <div id="outputContent" class="glass-card" style="background: white; color: black; padding: 30px; line-height: 1.8;"></div>
             </div>
+        </section>
+
+        <section id="pdfSection" class="section-container" style="display:none;">
+            <div class="glass-card main-card">
+                <h3><i class="fas fa-file-pdf"></i> معالج الملفات الأكاديمية</h3>
+                <div class="drop-zone" onclick="document.getElementById('pdfUpload').click()">
+                    <input type="file" id="pdfUpload" accept=".pdf" hidden onchange="handleFileUpload(this)">
+                    <div class="drop-content">
+                        <i class="fas fa-file-import fa-3x"></i>
+                        <p id="fileName">اسحب ملف المحاضرة (PDF) هنا</p>
+                        <small>سأقوم بتلخيصها وتحويلها لنقاط مفتاحية</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="mcqSection" class="section-container" style="display:none;">
+            <div class="glass-card main-card">
+                <h3><i class="fas fa-vial"></i> مصنع الأسئلة (MCQ)</h3>
+                <div class="drop-zone accent" onclick="document.getElementById('mcqFile').click()">
+                    <input type="file" id="mcqFile" accept=".pdf" hidden onchange="updateMcqFileName(this)">
+                    <i class="fas fa-puzzle-piece fa-3x"></i>
+                    <p id="mcqFileName">ارفع المنهج لتوليد الأسئلة</p>
+                </div>
+                <button class="btn-glow accent-btn" onclick="generateMCQs()">
+                    <i class="fas fa-wand-magic-sparkles"></i> توليد اختبار شامل
+                </button>
+            </div>
+        </section>
+
+        <section id="imageSection" class="section-container" style="display:none;">
+            <div class="glass-card main-card">
+                <h3><i class="fas fa-camera"></i> حل الأسئلة عبر الكاميرا</h3>
+                <div class="drop-zone danger" onclick="document.getElementById('imageUpload').click()">
+                    <input type="file" id="imageUpload" accept="image/*" hidden onchange="previewImage(this)">
+                    <i class="fas fa-camera-retro fa-3x"></i>
+                    <p id="imageStatusText">التقط صورة للسؤال أو ارفعها</p>
+                </div>
+                <div id="imagePreviewContainer" class="preview-box" style="display:none;">
+                    <img id="previewImg" src="">
+                    <button class="btn-glow danger-btn" onclick="solveImage()">تحليل وحل المسألة</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="loader" class="loader-wrapper" style="display:none;">
+            <div class="dna-spinner"></div>
+            <p>المعالجة الأكاديمية مستمرة... يرجى الانتظار</p>
+        </div>
+
+        <div id="resultArea" class="result-wrapper" style="display:none;">
+            <div class="result-controls">
+                <button class="action-btn pdf" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> تحميل PDF</button>
+                <button class="action-btn copy" onclick="copyText()"><i class="fas fa-copy"></i> نسخ</button>
+            </div>
+            <div id="outputContent" class="output-paper markdown-body"></div>
         </div>
 
     </main>
 
     <script>
-        marked.setOptions({ breaks: true, gfm: true });
-
+        // دالة التنقل
         function showSection(sectionId, element) {
             document.querySelectorAll('.section-container').forEach(sec => sec.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.getElementById(sectionId).style.display = 'block';
             element.classList.add('active');
-            resetUI();
+            document.getElementById('resultArea').style.display = 'none';
         }
 
-        function resetUI() {
-            document.getElementById('reportWrapper').style.display = 'none';
-            document.getElementById('pdfBtnReport').style.display = 'none';
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('outputContent').innerHTML = '';
-            document.getElementById('imagePreviewContainer').style.display = 'none';
-        }
-
+        // إظهار التحميل
         function showLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-            if(show) {
-                document.getElementById('reportWrapper').style.display = 'none';
-                document.getElementById('pdfBtnReport').style.display = 'none';
-            }
+            document.getElementById('loader').style.display = show ? 'flex' : 'none';
+            if(show) document.getElementById('resultArea').style.display = 'none';
         }
 
+        // عرض النتيجة
+        function renderResult(content) {
+            const out = document.getElementById('outputContent');
+            out.innerHTML = marked.parse(content);
+            document.getElementById('resultArea').style.display = 'block';
+            window.scrollTo({ top: out.offsetTop - 100, behavior: 'smooth' });
+        }
+
+        // التقارير
         async function generateReport() {
             const prompt = document.getElementById('promptInput').value;
-            if (!prompt) return alert("يرجى إدخال موضوع البحث");
+            if (!prompt) return;
             showLoader(true);
             try {
-                const response = await fetch('/generate', {
+                const res = await fetch('/generate', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ prompt: prompt })
+                    body: JSON.stringify({ prompt })
                 });
-                const data = await response.json();
+                const data = await res.json();
                 renderResult(data.report || data.error);
-            } catch (e) { renderResult("خطأ في الاتصال بالسيرفر"); }
+                updatePoints(10);
+            } catch (e) { alert("خطأ في الاتصال"); }
             showLoader(false);
         }
 
+        // معالجة PDF
         async function handleFileUpload(input) {
             if (!input.files[0]) return;
-            document.getElementById('fileName').innerHTML = `<b style="color: var(--secondary)">تم اختيار:</b> ${input.files[0].name}`;
+            document.getElementById('fileName').innerText = "جاهز: " + input.files[0].name;
             showLoader(true);
             const formData = new FormData();
             formData.append('file', input.files[0]);
             try {
-                const response = await fetch('/summarize_pdf', { method: 'POST', body: formData });
-                const data = await response.json();
+                const res = await fetch('/summarize_pdf', { method: 'POST', body: formData });
+                const data = await res.json();
                 renderResult(data.summary || data.error);
-            } catch (e) { renderResult("حدث خطأ أثناء التلخيص"); }
+                updatePoints(5);
+            } catch (e) { alert("خطأ في الرفع"); }
             showLoader(false);
         }
 
+        // معالجة MCQ
         function updateMcqFileName(input) {
-            if (input.files[0]) {
-                document.getElementById('mcqFileName').innerHTML = `<b style="color: var(--accent)">جاهز:</b> ${input.files[0].name}`;
-            }
+            if(input.files[0]) document.getElementById('mcqFileName').innerText = input.files[0].name;
         }
 
         async function generateMCQs() {
-            const fileInput = document.getElementById('mcqFile');
-            if (!fileInput.files[0]) return alert("يرجى اختيار ملف أولاً");
+            const file = document.getElementById('mcqFile').files[0];
+            if (!file) return;
             showLoader(true);
             const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+            formData.append('file', file);
             try {
-                const response = await fetch('/generate_mcq', { method: 'POST', body: formData });
-                const data = await response.json();
+                const res = await fetch('/generate_mcq', { method: 'POST', body: formData });
+                const data = await res.json();
                 renderResult(data.questions || data.error);
-            } catch (e) { renderResult("حدث خطأ أثناء توليد الأسئلة"); }
+            } catch (e) { alert("خطأ"); }
             showLoader(false);
         }
 
+        // معالجة الصور
         function previewImage(input) {
-            if (input.files && input.files[0]) {
+            if (input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = e => {
                     document.getElementById('previewImg').src = e.target.result;
                     document.getElementById('imagePreviewContainer').style.display = 'block';
-                    document.getElementById('imageStatusText').innerText = "تم اختيار: " + input.files[0].name;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
         async function solveImage() {
-            const fileInput = document.getElementById('imageUpload');
-            if (!fileInput.files[0]) return alert("يرجى رفع صورة أولاً");
+            const file = document.getElementById('imageUpload').files[0];
             showLoader(true);
             const formData = new FormData();
-            formData.append('image', fileInput.files[0]);
+            formData.append('image', file);
             try {
-                const response = await fetch('/analyze_image', { method: 'POST', body: formData });
-                const data = await response.json();
+                const res = await fetch('/analyze_image', { method: 'POST', body: formData });
+                const data = await res.json();
                 renderResult(data.solution || data.error);
-            } catch (e) { renderResult("حدث خطأ أثناء تحليل الصورة"); }
+            } catch (e) { alert("خطأ"); }
             showLoader(false);
         }
 
-        function renderResult(content) {
-            document.getElementById('reportWrapper').style.display = 'block';
-            document.getElementById('outputContent').innerHTML = marked.parse(content);
-            document.getElementById('pdfBtnReport').style.display = 'block';
-            window.scrollTo({ top: document.getElementById('resultArea').offsetTop, behavior: 'smooth' });
+        // دوال إضافية
+        function updatePoints(pts) {
+            const p = document.getElementById('userPoints');
+            p.innerText = parseInt(p.innerText) + pts;
+        }
+
+        function copyText() {
+            const text = document.getElementById('outputContent').innerText;
+            navigator.clipboard.writeText(text);
+            alert("تم النسخ!");
         }
 
         function exportToPDF() {
             const element = document.getElementById('outputContent');
-            const opt = {
-                margin: 0.5,
-                filename: 'AcademiX_Result.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
+            const opt = { margin: 1, filename: 'AcademiX_File.pdf', html2canvas: { scale: 2 } };
             html2pdf().set(opt).from(element).save();
         }
     </script>
