@@ -1,45 +1,36 @@
 import os
 from flask import Flask, render_template, request, jsonify
-import google.generativeai as genai
-import markdown
+from flask_cors import CORS
+from groq import Groq
 
 app = Flask(__name__)
+CORS(app)
 
-# --- الأمان أولاً ---
-# بدال ما تحط المفتاح هنا، استخدم الـ Environment Variable في Vercel
-API_KEY = os.getenv("GEMINI_API_KEY") 
-if not API_KEY:
-    # هذا بس للتشغيل المحلي، بس بالرفع لازم تمسحه
-    API_KEY = "AIzaSy..." 
-
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash') # استخدم فلاش أسرع وأرخص
-
-# دالة مساعدة لمعالجة النصوص بدل التكرار
-def get_ai_response(prompt):
-    try:
-        response = model.generate_content(prompt)
-        return markdown.markdown(response.text)
-    except Exception as e:
-        return f"خطأ في الاتصال بالذكاء الاصطناعي: {str(e)}"
+# تأكد من إضافة GROQ_API_KEY في إعدادات Vercel
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    user_input = request.json.get("message")
-    prompt = f"أجب كمساعد أكاديمي ذكي: {user_input}"
-    return jsonify({"response": get_ai_response(prompt)})
-
 @app.route('/generate_research', methods=['POST'])
 def generate_research():
-    topic = request.json.get("topic")
-    prompt = f"اكتب بحثاً أكاديمياً مفصلاً عن: {topic}. استخدم مراجع ومصادر واجعل الأسلوب علمي رصين."
-    return jsonify({"research": get_ai_response(prompt)})
+    try:
+        topic = request.json.get("topic")
+        if not topic:
+            return jsonify({'research': "يرجى إدخال موضوع"}), 400
 
-# ... (باقي الـ Routes بنفس الطريقة المختصرة)
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "أنت خبير أكاديمي. اكتب بحثاً مفصلاً باللغة العربية مع مقدمة، محاور، وخاتمة."},
+                {"role": "user", "content": f"اكتب بحثاً عن: {topic}"}
+            ],
+        )
+        # إرسال النص كما هو، الـ Frontend سيتولى التنسيق
+        return jsonify({'research': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'research': f"خطأ في السيرفر: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
