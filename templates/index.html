@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcademiX Pro | المنصة الأكاديمية الشاملة</title> [cite: 18, 19]
+    <title>AcademiX Pro | المنصة الأكاديمية الشاملة</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@300;500;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/style.css"> [cite: 1, 19]
+    <link rel="stylesheet" href="/static/style.css">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> [cite: 19]
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
-    <aside class="sidebar"> [cite: 3, 20]
-        <div class="logo-area"> [cite: 5, 20]
+    <aside class="sidebar">
+        <div class="logo-area">
             <h2>AcademiX AI</h2>
             <small>نظام التعليم الذكي</small>
         </div>
-        <nav class="nav-menu"> [cite: 6, 20]
+        <nav class="nav-menu">
             <div class="nav-item active" onclick="showSection('reportSection')">
                 <i class="fas fa-magic"></i> مولد التقارير الأكاديمية
             </div>
@@ -34,30 +34,30 @@
             </div>
         </nav>
         
-        <div class="stats-card"> [cite: 9, 21]
+        <div class="stats-card">
             <p style="margin:0; font-weight:bold;">
-                <i class="fas fa-star" style="color:#f59e0b"></i> نقاط الخبرة: <span id="userPoints">120</span> [cite: 21]
+                <i class="fas fa-star" style="color:#f59e0b"></i> نقاط الخبرة: <span id="userPoints">120</span>
             </p>
             <small>لقب الطالب: <b>باحث ناشئ</b></small>
         </div>
     </aside>
 
-    <main class="main-content"> [cite: 10, 22]
+    <main class="main-content">
         
         <div id="reportSection" class="section-container">
-            <div class="glass-card"> [cite: 10, 22]
-                <h2><i class="fas fa-magic" style="color: #00f2fe"></i> مولد التقارير الموثقة</h2> [cite: 22]
-                <p>أدخل موضوع البحث وسأقوم بتوليده مع المراجع الأكاديمية.</p> [cite: 22]
+            <div class="glass-card">
+                <h2><i class="fas fa-magic" style="color: #00f2fe"></i> مولد التقارير الموثقة</h2>
+                <p>أدخل موضوع البحث وسأقوم بتوليده مع المراجع الأكاديمية.</p>
                 
-                <div class="input-area"> [cite: 11, 23]
-                    <textarea id="promptInput" placeholder="مثال: أثر الذكاء الاصطناعي في هندسة البرمجيات..."></textarea> [cite: 23]
+                <div class="input-area">
+                    <textarea id="promptInput" placeholder="مثال: أثر الذكاء الاصطناعي في هندسة البرمجيات..."></textarea>
                 </div>
 
-                <div class="action-btns"> [cite: 12, 23]
-                    <button class="btn btn-primary" onclick="generateReport()"> [cite: 13, 23]
+                <div class="action-btns">
+                    <button class="btn btn-primary" onclick="generateReport()">
                         <i class="fas fa-bolt"></i> توليد الآن (+10 نقاط)
                     </button>
-                    <button id="pdfBtn" class="btn btn-outline" style="display:none;" onclick="exportToPDF()"> [cite: 14, 24]
+                    <button id="pdfBtn" class="btn btn-outline" style="display:none;" onclick="exportToPDF()">
                         <i class="fas fa-file-pdf"></i> تصدير PDF
                     </button>
                 </div>
@@ -72,11 +72,11 @@
                     <input type="file" id="pdfUpload" accept=".pdf" style="display: none;">
                     <label for="pdfUpload" style="cursor: pointer;">
                         <i class="fas fa-cloud-upload-alt fa-3x" style="color: #4facfe; margin-bottom: 15px;"></i>
-                        <p>اضغط هنا لاختيار ملف PDF</p>
+                        <p>اضغط هنا لاختيار ملف PDF من جهازك</p>
                     </label>
                 </div>
                 <div class="action-btns">
-                    <button class="btn btn-primary" disabled>
+                    <button class="btn btn-primary" disabled title="سيتم تفعيل الميزة بعد ربط السيرفر">
                         <i class="fas fa-align-left"></i> ابدأ التلخيص (قريباً)
                     </button>
                 </div>
@@ -86,13 +86,13 @@
         <div id="mcqSection" class="section-container" style="display:none;">
             <div class="glass-card">
                 <h2><i class="fas fa-graduation-cap" style="color: #f59e0b"></i> مصنع اختبارات MCQ</h2>
-                <p>اكتب موضوعاً وسأحول لك المفاهيم الأساسية إلى أسئلة اختبار.</p>
+                <p>اكتب موضوعاً وسأحول لك المفاهيم الأساسية إلى أسئلة اختبار تدريبية.</p>
                 <div class="input-area">
-                    <textarea id="mcqInput" placeholder="مثال: أساسيات لغة بايثون..."></textarea>
+                    <textarea id="mcqInput" placeholder="مثال: أساسيات الشبكات، علم النفس التربوي..."></textarea>
                 </div>
                 <div class="action-btns">
                     <button class="btn btn-primary" disabled>
-                        <i class="fas fa-vial"></i> توليد الأسئلة
+                        <i class="fas fa-vial"></i> توليد الأسئلة (قريباً)
                     </button>
                 </div>
             </div>
@@ -101,47 +101,50 @@
         <div id="imageSection" class="section-container" style="display:none;">
             <div class="glass-card">
                 <h2><i class="fas fa-camera" style="color: #10b981"></i> حل الواجبات بالصور</h2>
-                <p>صور السؤال الصعب وسأقوم بشرح الحل لك خطوة بخطوة.</p>
+                <p>قم برفع صورة للسؤال وسيقوم النظام بتحليلها وحلها فوراً.</p>
                 <div class="input-area" style="border: 2px dashed #334155; padding: 40px; text-align: center; border-radius: 12px;">
                     <i class="fas fa-image fa-3x" style="color: #10b981; margin-bottom: 15px;"></i>
-                    <p>هذه الميزة ستتوفر بعد ربط كاميرا الهاتف</p>
+                    <p>ميزة التعرف البصري (Vision AI) قيد التطوير</p>
                 </div>
             </div>
         </div>
 
-        <div id="loader" style="display:none; margin-top:20px; text-align:center;"> [cite: 25]
-            <i class="fas fa-spinner fa-spin"></i> جاري التحليل والمعالجة الأكاديمية... [cite: 25]
+        <div id="loader" style="display:none; margin-top:20px; text-align:center;">
+            <i class="fas fa-spinner fa-spin"></i> جاري التحليل والمعالجة باستخدام الذكاء الاصطناعي...
         </div>
 
-        <div id="reportWrapper"> [cite: 16, 26]
+        <div id="reportWrapper">
             <div id="outputContent"></div>
-            <div class="citation-box" id="citationArea"> [cite: 15, 26]
-                <strong><i class="fas fa-book"></i> المراجع الموثقة:</strong> [cite: 26]
+            <div class="citation-box" id="citationArea">
+                <strong><i class="fas fa-book"></i> المراجع الموثقة:</strong>
                 <div id="citations"></div>
             </div>
         </div>
     </main>
 
-    <p style="text-align: center; color: #555; font-size: 12px; margin: 20px 0; font-family: sans-serif;"> [cite: 27]
-        Developed by <strong>Eng Reda</strong> [cite: 27]
-    </p>
+    <footer style="text-align: center; color: #555; font-size: 12px; padding: 20px; font-family: sans-serif;">
+        Developed by <strong>Eng Reda</strong>
+    </footer>
 
-    <script src="/static/script.js"></script> [cite: 27]
+    <script src="/static/script.js"></script>
 
     <script>
-        // وظيفة التنقل بين الميزات بدون تحديث الصفحة
         function showSection(sectionId) {
-            // إخفاء جميع الأقسام
-            document.querySelectorAll('.section-container').forEach(sec => sec.style.display = 'none');
-            // إزالة حالة النشاط من القائمة
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            // إخفاء كافة الحاويات
+            document.querySelectorAll('.section-container').forEach(sec => {
+                sec.style.display = 'none';
+            });
             
-            // إظهار القسم المختار
+            // إزالة التنشيط من كافة أزرار القائمة
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // إظهار الحاوية المطلوبة وتنشيط الزر
             document.getElementById(sectionId).style.display = 'block';
-            // تفعيل العنصر في القائمة
             event.currentTarget.classList.add('active');
             
-            // إخفاء نتائج البحث السابقة عند التنقل لترتيب الواجهة
+            // تنظيف منطقة النتائج عند الانتقال
             document.getElementById('reportWrapper').style.display = 'none';
         }
     </script>
