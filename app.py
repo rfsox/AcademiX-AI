@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-# مكتبات اختيارية لمعالجة النص العربي المقلوب في ملفات PDF
+# مكتبات معالجة النص العربي لضمان القراءة الصحيحة
 try:
     import arabic_reshaper
     from bidi.algorithm import get_display
@@ -16,15 +16,14 @@ except ImportError:
 app = Flask(__name__)
 CORS(app)
 
-# جلب مفتاح الأي بي آي
+# إعداد العميل
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
 def fix_extracted_text(text):
-    """دالة لمعالجة النص العربي لضمان فهمه بشكل صحيح من قبل النموذج"""
+    """تصحيح ترتيب الحروف العربية المستخرجة من PDF"""
     if not text: return ""
     if HAS_ARABIC_TOOLS:
-        # إعادة تشكيل الحروف وتصحيح الاتجاه
         reshaped = arabic_reshaper.reshape(text)
         return get_display(reshaped)
     return text
@@ -33,7 +32,7 @@ def fix_extracted_text(text):
 def index():
     return render_template('index.html')
 
-# --- 1. مولد التقارير (محسن لنتائج أطول) ---
+# --- 1. مولد التقارير (تم زيادة الطول) ---
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
@@ -48,21 +47,20 @@ def generate():
                 {
                     "role": "system", 
                     "content": (
-                        "أنت بروفيسور وأكاديمي خبير. قدم تقريراً بحثياً شاملاً ومفصلاً جداً باللغة العربية. "
-                        "يجب أن يكون النص طويلاً ويتضمن مقدمة مكثفة، محاور تحليلية عميقة، استنتاجات، وقائمة مراجع. "
-                        "استخدم Markdown لجعله يبدو كبحث مطبوع."
+                        "أنت بروفيسور خبير. قدم تقريراً طويلاً جداً ومفصلاً. "
+                        "يجب أن يتجاوز التقرير 2000 كلمة مع عناوين واضحة ومراجع أكاديمية."
                     )
                 },
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=4000 
+            max_tokens=6000 # زيادة الحد الأقصى للكلمات
         )
         return jsonify({'report': completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'report': f"خطأ في النظام: {str(e)}"}), 500
+        return jsonify({'report': f"خطأ: {str(e)}"}), 500
 
-# --- 2. تلخيص PDF (تم تحديثه ليكون طويلاً وشاملاً جداً) ---
+# --- 2. تلخيص PDF (تم حل مشكلة الانقطاع والترجمة) ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
@@ -73,34 +71,33 @@ def summarize_pdf():
         extracted_text = ""
         
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            max_pages = min(len(pdf.pages), 30) # زيادة عدد الصفحات المقروءة
-            for page in pdf.pages[:max_pages]:
+            max_pages = min(len(pdf.pages), 35) 
+            for page in pdf.pages:
                 text = page.extract_text()
                 if text:
-                    # نطبق المعالجة لضمان جودة النص العربي المبعثر
                     extracted_text += fix_extracted_text(text) + "\n"
 
         if not extracted_text.strip():
-            return jsonify({'summary': 'نعتذر، لم نتمكن من قراءة النص. تأكد أن الملف ليس صوراً فقط.'})
+            return jsonify({'summary': 'الملف لا يحتوي على نص قابل للقراءة.'})
 
-        # طلب تلخيص طويل جداً ومزدوج
+        # البرومبت المطور لمنع الانقطاع
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system", 
                     "content": (
-                        "You are a master academic analyst. Your task is to provide an EXTREMELY DETAILED and LONG summary. "
-                        "1. Breakdown the document into its original sections. "
-                        "2. For each section, provide a comprehensive English analysis inside <div class='en-text' dir='ltr'>. "
-                        "3. Directly follow it with a high-quality, professional Arabic translation. "
-                        "Don't skip any details. The output must be long enough to cover all aspects of the document."
+                        "You are an expert academic summarizer. Your goal is to provide a COMPLETE, LONG, and UNINTERRUPTED summary. "
+                        "Structure your response as follows: "
+                        "1. A very long and detailed English summary inside <div class='en-text' dir='ltr'>. "
+                        "2. A full, professional Arabic translation that matches the English version exactly. "
+                        "DO NOT STOP halfway. Provide as much detail as possible for every section of the document."
                     )
                 },
-                {"role": "user", "content": f"Please summarize this document thoroughly:\n\n{extracted_text[:25000]}"}
+                {"role": "user", "content": f"Analyze and summarize this document completely:\n\n{extracted_text[:28000]}"}
             ],
             temperature=0.5,
-            max_tokens=4000
+            max_tokens=8000 # رفع الحد الأقصى جداً لمنع الانقطاع المذكور في صورتك
         )
 
         return jsonify({'summary': completion.choices[0].message.content})
@@ -108,7 +105,6 @@ def summarize_pdf():
     except Exception as e:
         return jsonify({'summary': f"خطأ تقني: {str(e)}"}), 500
 
-# لضمان التشغيل على Vercel
 application = app
 
 if __name__ == '__main__':
