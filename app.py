@@ -1,6 +1,7 @@
 import os
 import io
 import re
+import base64
 import pdfplumber
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
@@ -16,6 +17,7 @@ client = Groq(api_key=API_KEY)
 # الموديلات المعتمدة للاستقرار
 MODEL_REPORT = "llama-3.3-70b-versatile"
 MODEL_FAST = "llama-3.1-8b-instant"
+MODEL_VISION = "llama-3.2-11b-vision-preview" # الموديل الجديد للصور
 
 def clean_text_for_ai(text):
     """تنظيف النص من أي رموز غريبة قد تسبب ارتباكاً للموديل"""
@@ -64,7 +66,7 @@ def generate():
     except Exception as e:
         return jsonify({'report': f"خطأ في السيرفر: {str(e)}"}), 500
 
-# --- 2. تلخيص PDF (حل مشكلة الاعتذار بالإنجليزية) ---
+# --- 2. تلخيص PDF ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
@@ -78,13 +80,7 @@ def summarize_pdf():
             messages=[
                 {
                     "role": "system", 
-                    "content": (
-                        "STRICT RULES: \n"
-                        "1. START THE SUMMARY IMMEDIATELY.\n"
-                        "2. Format: Detailed English paragraph followed by a Professional Arabic translation.\n"
-                        "3. NO introductions, NO 'I understand', NO apologies about translation machine.\n"
-                        "4. Focus only on the content provided."
-                    )
+                    "content": "STRICT RULES: START IMMEDIATELY. Format: Detailed English paragraph followed by a Professional Arabic translation. NO introductions."
                 },
                 {"role": "user", "content": f"Text to analyze:\n\n{raw_text[:15000]}"}
             ],
@@ -95,7 +91,7 @@ def summarize_pdf():
     except Exception as e:
         return jsonify({'summary': f"خطأ تقني: {str(e)}"}), 500
 
-# --- 3. مصنع الأسئلة MCQ (تنسيق صارم) ---
+# --- 3. مصنع الأسئلة MCQ ---
 @app.route('/generate_mcq', methods=['POST'])
 def generate_mcq():
     try:
@@ -108,13 +104,7 @@ def generate_mcq():
             messages=[
                 {
                     "role": "system", 
-                    "content": (
-                        "You are an exam generator. Create a long list of MCQs.\n"
-                        "Each question must be in English, followed by its Arabic translation.\n"
-                        "Choices A, B, C, D must be translated.\n"
-                        "Highlight the correct answer at the end of each question.\n"
-                        "USE MARKDOWN. DO NOT CHAT WITH THE USER."
-                    )
+                    "content": "You are an exam generator. Create MCQs in English and Arabic. Highlight the correct answer. DO NOT CHAT."
                 },
                 {"role": "user", "content": f"Create MCQs from this:\n\n{raw_text[:15000]}"}
             ],
@@ -124,6 +114,39 @@ def generate_mcq():
         return jsonify({'questions': completion.choices[0].message.content})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# --- 4. ميزة حل الصور (الجديدة) ---
+@app.route('/analyze_image', methods=['POST'])
+def analyze_image():
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'لم يتم اختيار صورة'}), 400
+        
+        image_file = request.files['image']
+        # تحويل الصورة إلى base64 ليرسلها التطبيق للموديل
+        base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+        completion = client.chat.completions.create(
+            model=MODEL_VISION,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "أنت خبير أكاديمي. قم بحل هذا السؤال الموجود في الصورة بالتفصيل وباللغة العربية. إذا كان السؤال يحتاج خطوات حل، اكتبها بوضوح."},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}",
+                            },
+                        },
+                    ],
+                }
+            ],
+            max_tokens=3000
+        )
+        return jsonify({'solution': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'error': f"خطأ في معالجة الصورة: {str(e)}"}), 500
 
 application = app
 if __name__ == '__main__':
