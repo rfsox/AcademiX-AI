@@ -5,11 +5,9 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-# تعريف التطبيق باسم 'app' ليتعرف عليه Vercel تلقائياً
 app = Flask(__name__)
 CORS(app)
 
-# جلب مفتاح API من إعدادات Vercel
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
@@ -17,39 +15,28 @@ client = Groq(api_key=API_KEY)
 def index():
     return render_template('index.html')
 
-# --- الميزة الأولى: توليد التقارير الأكاديمية ---
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'result': 'فشل في قراءة البيانات'}), 400
-            
         prompt = data.get('prompt', '')
         if not prompt:
-            return jsonify({'result': 'يرجى إدخال موضوع للبحث'})
-
-        system_content = (
-            "You are a professional academic researcher. "
-            "Reply in the language used by the user. "
-            "Provide a detailed academic report with headings and citations."
-        )
+            return jsonify({'result': 'يرجى إدخال موضوع'})
 
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": system_content},
+                {"role": "system", "content": "You are an expert researcher. Provide a VERY LONG, extremely detailed academic report with many sections and citations."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=4000
+            max_tokens=4000 # أقصى حد مسموح به لضمان طول التقرير
         )
         return jsonify({'result': completion.choices[0].message.content})
-
     except Exception as e:
-        return jsonify({'result': f"حدث خطأ: {str(e)}"}), 500
+        return jsonify({'result': f"خطأ: {str(e)}"}), 500
 
-# --- الميزة الثانية: تلخيص PDF (إنجليزي + عربي خبط) ---
+# --- ميزة التلخيص العميق جداً (إنجليزي + عربي) ---
 @app.route('/summarize_pdf', methods=['POST'])
 def summarize_pdf():
     try:
@@ -61,42 +48,47 @@ def summarize_pdf():
         pdf_reader = PyPDF2.PdfReader(pdf_stream)
         
         extracted_text = ""
-        # نأخذ أول 8 صفحات لضمان استجابة سريعة ودقيقة
-        max_pages = min(len(pdf_reader.pages), 8)
+        # رفعنا عدد الصفحات إلى 20 صفحة للحصول على محتوى ضخم
+        max_pages = min(len(pdf_reader.pages), 20) 
         for i in range(max_pages):
             page_text = pdf_reader.pages[i].extract_text()
             if page_text:
-                extracted_text += page_text
+                extracted_text += f"\n--- Page {i+1} ---\n" + page_text
 
         if not extracted_text.strip():
-            return jsonify({'result': 'الملف لا يحتوي على نص قابل للقراءة.'})
+            return jsonify({'result': 'الملف فارغ أو عبارة عن صور.'})
 
-        # إرسال التعليمات لعمل تلخيص مزدوج (خبط لغوي)
+        # إرسال نص طويل جداً (حتى 25 ألف حرف)
+        clean_text = extracted_text[:25000] 
+
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system", 
                     "content": (
-                        "You are a bilingual academic expert. "
-                        "Summarize the text in a 'Bilingual Mixed' format. "
-                        "For every point you make, write the bullet point in English first, "
-                        "then immediately write its professional Arabic translation below it. "
-                        "Example format:\n"
-                        "- **English sentence here**\n"
-                        "  (الترجمة العربية الاحترافية هنا)\n"
-                        "Use Markdown for bolding and clear structure."
+                        "You are a bilingual academic professor. Your task is to provide an EXHAUSTIVE and VERY DETAILED summary. "
+                        "Do not skip any important details. For every section of the text: "
+                        "1. Write a comprehensive summary in English. "
+                        "2. Follow it with an EQUALLY DETAILED professional Arabic translation. "
+                        "Format: \n"
+                        "### [Section Title in English]\n"
+                        "**Detailed English Summary...**\n\n"
+                        "**التلخيص العربي المفصل...**\n"
+                        "-----------------------------------\n"
+                        "Make the response as long as possible."
                     )
                 },
-                {"role": "user", "content": f"Summarize this text:\n\n{extracted_text[:10000]}"}
+                {"role": "user", "content": f"Analyze and summarize this text in great detail:\n\n{clean_text}"}
             ],
-            temperature=0.6
+            temperature=0.5,
+            max_tokens=4000 # طلب أقصى عدد من الكلمات في الرد
         )
 
         return jsonify({'result': completion.choices[0].message.content})
 
     except Exception as e:
-        return jsonify({'result': f"خطأ أثناء المعالجة: {str(e)}"}), 500
+        return jsonify({'result': f"خطأ في المعالجة العميق: {str(e)}"}), 500
 
 application = app
 
