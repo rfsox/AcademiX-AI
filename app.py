@@ -5,113 +5,91 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
 
-# 1. إعداد التطبيق
 app = Flask(__name__)
 CORS(app)
 
-# 2. إعداد العميل (تأكد من وضع المفتاح في Vercel Environment Variables)
+# تأكد من وضع المفتاح في إعدادات Vercel
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# الموديلات المستخدمة:
-# 70b للتقارير المعقدة التي تحتاج ذكاء عالي
-# 8b للملخصات والأسئلة لضمان استجابة سريعة جداً تمنع خطأ 500
-MODEL_DEEP = "llama-3.3-70b-versatile"
-MODEL_FAST = "llama-3.1-8b-instant"
+# استخدام الموديل المستقر والسريع لضمان عدم حدوث Timeout
+MODEL_NAME = "llama-3.1-8b-instant"
 
-def extract_pdf_content(file):
-    """استخراج النص بذكاء مع تحديد سقف لعدد الصفحات لضمان استقرار السيرفر"""
+def extract_clean_text(file):
     text = ""
     try:
         file.seek(0)
         with pdfplumber.open(io.BytesIO(file.read())) as pdf:
-            # نكتفي بأول 20 صفحة لضمان بقاء وقت المعالجة تحت 10 ثوانٍ (قيد Vercel)
-            for page in pdf.pages[:20]:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + "\n"
-    except Exception:
-        pass
+            # نكتفي بـ 10 صفحات لضمان جودة الاستخراج وسرعة الرد
+            for page in pdf.pages[:10]:
+                content = page.extract_text()
+                if content: text += content + "\n"
+    except: pass
     return text
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# --- مسار توليد التقارير (Prompt Based) ---
+@app.route('/summarize_pdf', methods=['POST'])
+def summarize_pdf():
+    try:
+        raw_text = extract_clean_text(request.files['file'])
+        if not raw_text: return jsonify({'summary': "لم يتم العثور على نص قابل للقراءة"}), 400
+
+        completion = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": """أنت خبير تلخيص أكاديمي. 
+                يجب أن يكون ردك منظماً جداً للفصل بين اللغات:
+                - اكتب الفكرة بالإنجليزية في سطر مستقل.
+                - اكتب ترجمتها العربية في السطر الذي يليه مباشرة.
+                - لا تخلط اللغتين في نفس السطر أبداً.
+                - الحد الأقصى للرد هو 800 توكن."""},
+                {"role": "user", "content": f"لخص هذا النص بوضوح:\n\n{raw_text[:7000]}"}
+            ],
+            max_tokens=800,
+            temperature=0.5
+        )
+        return jsonify({'summary': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'summary': f"Server Error: {str(e)}"}), 500
+
+@app.route('/generate_mcq', methods=['POST'])
+def generate_mcq():
+    try:
+        raw_text = extract_clean_text(request.files['file'])
+        completion = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": """أنشئ أسئلة MCQ احترافية.
+                نظام التنسيق الإلزامي:
+                Question (EN)
+                السؤال (AR)
+                A) Option (EN) / الخيار (AR)
+                Answer: [Correct Option]
+                التزم بـ 800 توكن كحد أقصى."""},
+                {"role": "user", "content": f"أنشئ أسئلة من المنهج:\n\n{raw_text[:7000]}"}
+            ],
+            max_tokens=800,
+            temperature=0.3
+        )
+        return jsonify({'questions': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/generate', methods=['POST'])
 def generate_report():
     try:
         data = request.get_json()
-        user_prompt = data.get('prompt', '')
-        
-        response = client.chat.completions.create(
-            model=MODEL_DEEP,
+        topic = data.get('prompt', '')
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile", # للتقرير نستخدم الموديل الأقوى
             messages=[
-                {"role": "system", "content": "أنت خبير أكاديمي محترف. اكتب تقريراً مفصلاً ومنظماً بالعربية مع استخدام المصطلحات الإنجليزية الضرورية."},
-                {"role": "user", "content": f"اكتب بحثاً أكاديمياً معمقاً عن: {user_prompt}"}
+                {"role": "system", "content": "اكتب تقريراً أكاديمياً مفصلاً بالعربية مع مصطلحات إنجليزية واضحة."},
+                {"role": "user", "content": f"اكتب عن: {topic}"}
             ],
-            max_tokens=1000,
-            temperature=0.5
+            max_tokens=800
         )
-        return jsonify({'report': response.choices[0].message.content})
+        return jsonify({'report': completion.choices[0].message.content})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-# --- مسار تلخيص الـ PDF (File Based) ---
-@app.route('/summarize_pdf', methods=['POST'])
-def summarize_pdf():
-    try:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file uploaded'}), 400
-        
-        raw_text = extract_pdf_content(request.files['file'])
-        if not raw_text:
-            return jsonify({'summary': "تعذر استخراج نص من الملف. تأكد أنه ليس ملف صور."}), 400
-
-        # نستخدم الموديل السريع هنا لضمان عدم حدوث Timeout
-        response = client.chat.completions.create(
-            model=MODEL_FAST,
-            messages=[
-                {"role": "system", "content": """لخص النص بأسلوب أكاديمي. 
-                التنسيق المطلوب: 
-                - اكتب الفقرة بالإنجليزية أولاً.
-                - أتبعها مباشرة بالترجمة العربية الدقيقة.
-                اجعل الشرح وافياً بحدود 800 توكن."""},
-                {"role": "user", "content": f"لخص هذا المنهج:\n\n{raw_text[:10000]}"}
-            ],
-            max_tokens=1000
-        )
-        return jsonify({'summary': response.choices[0].message.content})
-    except Exception as e:
-        return jsonify({'summary': f"حدث خطأ: {str(e)}"}), 500
-
-# --- مسار توليد الأسئلة (File Based) ---
-@app.route('/generate_mcq', methods=['POST'])
-def generate_mcq():
-    try:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file uploaded'}), 400
-            
-        raw_text = extract_pdf_content(request.files['file'])
-        
-        response = client.chat.completions.create(
-            model=MODEL_FAST,
-            messages=[
-                {"role": "system", "content": """قم بإنشاء بنك أسئلة MCQ شامل من النص.
-                لكل سؤال:
-                1. السؤال بالإنجليزية.
-                2. السؤال بالعربية.
-                3. الخيارات (A, B, C, D) باللغتين.
-                4. الإجابة الصحيحة في النهاية.
-                اجعل الأسئلة تغطي كافة النقاط الجوهرية."""},
-                {"role": "user", "content": f"أنشئ أسئلة من هذا النص:\n\n{raw_text[:10000]}"}
-            ],
-            max_tokens=1500,
-            temperature=0.3
-        )
-        return jsonify({'questions': response.choices[0].message.content})
-    except Exception as e:
-        return jsonify({'error': f"خطأ في توليد الأسئلة: {str(e)}"}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
+        return jsonify({'report': str(e)}), 500
