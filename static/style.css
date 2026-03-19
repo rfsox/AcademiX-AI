@@ -139,17 +139,35 @@ body {
 .btn-primary { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: #080e1a; }
 .btn:hover { transform: translateY(-3px); opacity: 0.9; }
 
-/* منطقة النتائج (Paper Style) */
+/* 🌟 منطقة النتائج (Paper Style المحدث) 🌟 */
 #reportWrapper { 
     width: 100%;
-    max-width: 800px;
+    max-width: 850px;
     background: #ffffff; 
     color: #1e293b; 
-    padding: 40px; 
+    padding: 50px; 
     margin-top: 30px; 
     border-radius: 15px; 
     display: none;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    line-height: 1.8;
+}
+
+/* تنسيق النصوص داخل التقرير المولد */
+#outputContent h1, #outputContent h2 { color: #0f172a; margin: 20px 0 10px 0; }
+#outputContent p { margin-bottom: 15px; text-align: justify; }
+
+/* نظام تمييز النصوص الإنجليزية (English/Bilingual Support) */
+#outputContent .en-text {
+    direction: ltr;
+    text-align: left;
+    display: block;
+    background: #f8fafc;
+    padding: 15px;
+    border-left: 5px solid var(--primary);
+    border-radius: 8px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 15px 0;
 }
 
 /* 🚨 الموبايل: الحل الجذري (إصلاح الصورة 3) 🚨 */
@@ -186,4 +204,18 @@ body {
 
     .glass-card { padding: 25px; width: 100%; max-width: none; }
     .input-area textarea { padding: 15px; font-size: 1rem; }
+    #reportWrapper { padding: 25px; }
+}
+
+/* 📄 تنسيق الطباعة (PDF Export Fix) 📄 */
+@media print {
+    body { background: white; }
+    .sidebar, .action-btns, .glass-card { display: none !important; }
+    #reportWrapper { 
+        display: block !important; 
+        box-shadow: none; 
+        width: 100%; 
+        margin: 0; 
+        padding: 0;
+    }
 }
