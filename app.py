@@ -1,6 +1,6 @@
 import os
 import io
-import PyPDF2
+import pdfplumber  # استبدلنا PyPDF2 بمكتبة أقوى وأدق
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from groq import Groq
@@ -8,6 +8,7 @@ from groq import Groq
 app = Flask(__name__)
 CORS(app)
 
+# جلب مفتاح الأي بي آي
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY)
 
@@ -15,51 +16,14 @@ client = Groq(api_key=API_KEY)
 def index():
     return render_template('index.html')
 
+# --- 1. مولد التقارير المحدث ---
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
         data = request.get_json()
         prompt = data.get('prompt', '')
         if not prompt:
-            return jsonify({'result': 'يرجى إدخال موضوع'})
-
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert researcher. Provide a VERY LONG, extremely detailed academic report with many sections and citations."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=4000 # أقصى حد مسموح به لضمان طول التقرير
-        )
-        return jsonify({'result': completion.choices[0].message.content})
-    except Exception as e:
-        return jsonify({'result': f"خطأ: {str(e)}"}), 500
-
-# --- ميزة التلخيص العميق جداً (إنجليزي + عربي) ---
-@app.route('/summarize_pdf', methods=['POST'])
-def summarize_pdf():
-    try:
-        if 'file' not in request.files:
-            return jsonify({'result': 'لم يتم العثور على ملف'}), 400
-        
-        file = request.files['file']
-        pdf_stream = io.BytesIO(file.read())
-        pdf_reader = PyPDF2.PdfReader(pdf_stream)
-        
-        extracted_text = ""
-        # رفعنا عدد الصفحات إلى 20 صفحة للحصول على محتوى ضخم
-        max_pages = min(len(pdf_reader.pages), 20) 
-        for i in range(max_pages):
-            page_text = pdf_reader.pages[i].extract_text()
-            if page_text:
-                extracted_text += f"\n--- Page {i+1} ---\n" + page_text
-
-        if not extracted_text.strip():
-            return jsonify({'result': 'الملف فارغ أو عبارة عن صور.'})
-
-        # إرسال نص طويل جداً (حتى 25 ألف حرف)
-        clean_text = extracted_text[:25000] 
+            return jsonify({'report': 'يرجى إدخال موضوع البحث'})
 
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -67,30 +31,68 @@ def summarize_pdf():
                 {
                     "role": "system", 
                     "content": (
-                        "You are a bilingual academic professor. Your task is to provide an EXHAUSTIVE and VERY DETAILED summary. "
-                        "Do not skip any important details. For every section of the text: "
-                        "1. Write a comprehensive summary in English. "
-                        "2. Follow it with an EQUALLY DETAILED professional Arabic translation. "
-                        "Format: \n"
-                        "### [Section Title in English]\n"
-                        "**Detailed English Summary...**\n\n"
-                        "**التلخيص العربي المفصل...**\n"
-                        "-----------------------------------\n"
-                        "Make the response as long as possible."
+                        "أنت خبير أبحاث أكاديمي عالمي. قدم تقريراً طويلاً جداً ومفصلاً باللغة العربية. "
+                        "يجب أن يتضمن التقرير: مقدمة، محاور رئيسية، شرحاً علمياً، استنتاجات، وقائمة مراجع أكاديمية. "
+                        "استخدم تنسيق Markdown بشكل احترافي مع عناوين واضحة."
                     )
                 },
-                {"role": "user", "content": f"Analyze and summarize this text in great detail:\n\n{clean_text}"}
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=4000 
+        )
+        # أصلحنا المفتاح ليكون 'report' بدلاً من 'result'
+        return jsonify({'report': completion.choices[0].message.content})
+    except Exception as e:
+        return jsonify({'report': f"حدث خطأ في النظام: {str(e)}"}), 500
+
+# --- 2. ميزة التلخيص المزدوج (حل مشكلة الصورة رقم 7) ---
+@app.route('/summarize_pdf', methods=['POST'])
+def summarize_pdf():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'summary': 'لم يتم العثور على ملف'}), 400
+        
+        file = request.files['file']
+        extracted_text = ""
+        
+        # استخدام pdfplumber لقراءة أدق للنصوص والجداول
+        with pdfplumber.open(io.BytesIO(file.read())) as pdf:
+            max_pages = min(len(pdf.pages), 25) # قراءة حتى 25 صفحة
+            for page in pdf.pages[:max_pages]:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text + "\n"
+
+        if not extracted_text.strip():
+            return jsonify({'summary': 'نعتذر، لم أتمكن من استخراج نص من هذا الملف (قد يكون الملف عبارة عن صور فقط).'})
+
+        # معالجة النص عبر Groq
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": (
+                        "You are a professional academic translator and summarizer. "
+                        "Analyze the text and provide a dual summary for each major section: "
+                        "First in English (Very Detailed), then the exact Arabic translation. "
+                        "Format the output using HTML tags for clarity: "
+                        "Use <div class='en-text'> for English and standard text for Arabic. "
+                        "Make the final response as comprehensive as possible."
+                    )
+                },
+                {"role": "user", "content": f"Summarize this academic document:\n\n{extracted_text[:20000]}"}
             ],
             temperature=0.5,
-            max_tokens=4000 # طلب أقصى عدد من الكلمات في الرد
+            max_tokens=4000
         )
 
-        return jsonify({'result': completion.choices[0].message.content})
+        return jsonify({'summary': completion.choices[0].message.content})
 
     except Exception as e:
-        return jsonify({'result': f"خطأ في المعالجة العميق: {str(e)}"}), 500
-
-application = app
+        print(f"Internal Error: {e}")
+        return jsonify({'summary': f"خطأ تقني في معالجة الملف: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
