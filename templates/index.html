@@ -52,11 +52,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .header-title {
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -1px;
-        }
+        .header-title { font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
 
         .eng-tag {
             background: var(--accent-gold);
@@ -75,8 +71,6 @@
             padding: 14px 20px !important;
         }
 
-        .custom-input::placeholder { color: #94a3b8; }
-
         .btn-generate {
             background: var(--accent-gold);
             color: #000;
@@ -84,24 +78,41 @@
             border-radius: 12px;
             padding: 10px 25px;
             font-weight: 700;
-            transition: all 0.3s;
-        }
-
-        .btn-generate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);
-            background: #fff;
+            transition: 0.3s;
         }
 
         .result-area {
-            background: #f8fafc; 
-            color: #1e293b;
+            background: #ffffff; 
+            color: #000000;
             border-radius: 16px;
             padding: 35px;
             margin-top: 30px;
-            min-height: 450px;
+            min-height: 500px;
             position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* تنسيق المحتوى الإنجليزي - إجباري لليسار */
+        .ltr-dir { 
+            direction: ltr !important; 
+            text-align: left !important; 
+        }
+        .ltr-dir h1, .ltr-dir h2, .ltr-dir h3, .ltr-dir h4 { 
+            text-align: left !important; 
+            margin-top: 15px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .ltr-dir p, .ltr-dir li { text-align: justify; line-height: 1.6; }
+
+        /* تنسيق المحتوى العربي */
+        .rtl-dir { 
+            direction: rtl !important; 
+            text-align: right !important; 
+        }
+        .rtl-dir h1, .rtl-dir h2, .rtl-dir h3, .rtl-dir h4 { 
+            text-align: right !important; 
+            border-bottom: 1px solid #eee;
         }
 
         .action-btns {
@@ -114,36 +125,23 @@
         }
 
         .btn-action {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            color: #475569;
+            cursor: pointer;
         }
 
-        .btn-action:hover { background: #f1f5f9; color: var(--bg-dark); }
-
-        #loader { display: none; margin: 30px 0; }
-        .spinner-border { color: var(--accent-gold); width: 3rem; height: 3rem; }
-
-        /* محاذاة العناوين والفقرات للتقرير الإنجليزي */
-        .ltr-dir { direction: ltr !important; text-align: left !important; }
-        .ltr-dir h1, .ltr-dir h2, .ltr-dir h3, .ltr-dir h4 { text-align: left !important; width: 100%; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 20px; }
-        .ltr-dir p, .ltr-dir li { text-align: justify; }
-
-        /* محاذاة التقرير العربي */
-        .rtl-dir { direction: rtl !important; text-align: right !important; }
-        .rtl-dir h1, .rtl-dir h2, .rtl-dir h3, .rtl-dir h4 { text-align: right !important; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 20px; }
+        #loader { display: none; margin: 20px 0; }
+        .spinner-border { color: var(--accent-gold); }
 
         @media (max-width: 768px) {
-            .glass-card { padding: 25px 15px; margin: 10px; }
-            .input-group { flex-direction: column; }
-            .btn-generate { width: 100%; margin-top: 10px; border-radius: 12px !important; }
+            .glass-card { padding: 20px; }
+            .btn-generate { width: 100%; margin-top: 10px; }
         }
     </style>
 </head>
@@ -156,11 +154,11 @@
                 <div class="mb-4">
                     <h1 class="header-title mb-2">ACADEMIX <span style="color: var(--accent-gold);">PRO</span></h1>
                     <div class="mb-3"><span class="eng-tag">ENG REDA EDITION</span></div>
-                    <p class="text-white-50">نظام الذكاء الاصطناعي الأكاديمي لتوليد التقارير المكثفة</p>
+                    <p class="text-white-50">توليد تقارير أكاديمية مكثفة وفورية</p>
                 </div>
 
                 <div class="input-group mb-4 shadow-sm">
-                    <input type="text" id="topic" class="form-control custom-input" placeholder="اكتب عنوان التقرير (مثال: Renewable Energy Systems)...">
+                    <input type="text" id="topic" class="form-control custom-input" placeholder="عنوان التقرير...">
                     <button class="btn btn-generate" id="generateBtn" onclick="generateReport()">
                         <i class="fas fa-magic me-2"></i> توليد التقرير
                     </button>
@@ -168,25 +166,20 @@
 
                 <div id="loader">
                     <div class="spinner-border" role="status"></div>
-                    <p class="mt-3 fw-bold text-white-50">جاري صياغة تقرير مكثف وحصري لـ Eng Reda...</p>
+                    <p class="mt-2 text-white-50">جاري الصياغة المكثفة...</p>
                 </div>
 
-                <div class="result-area shadow" id="report-wrapper">
+                <div class="result-area" id="report-wrapper">
                     <div class="action-btns">
-                        <button class="btn btn-action" onclick="copyText()" title="نسخ"><i class="fas fa-copy"></i></button>
-                        <button class="btn btn-action" onclick="downloadPDF()" title="تحميل PDF"><i class="fas fa-file-pdf"></i></button>
+                        <button class="btn btn-action" onclick="copyText()"><i class="fas fa-copy"></i></button>
+                        <button class="btn btn-action" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i></button>
                     </div>
                     
                     <div id="output-content" class="rtl-dir">
                         <div class="text-center text-muted pt-5 mt-5">
-                            <i class="fas fa-terminal fa-3x d-block mb-3 opacity-25"></i>
-                            أدخل الموضوع وسأقوم بإنشاء تقرير أكاديمي كامل فوراً
+                            بانتظار العنوان لبدء التقرير...
                         </div>
                     </div>
-                </div>
-
-                <div class="mt-4 text-white-50 small">
-                    Engineered with Excellence | 2024
                 </div>
             </div>
         </div>
@@ -200,13 +193,10 @@
         const loader = document.getElementById('loader');
         const btn = document.getElementById('generateBtn');
 
-        if(!topic) {
-            alert("يرجى إدخال الموضوع يا هندسة!");
-            return;
-        }
+        if(!topic) return alert("أدخل الموضوع!");
 
         loader.style.display = "block";
-        output.style.opacity = "0.2";
+        output.style.opacity = "0.3";
         btn.disabled = true;
 
         try {
@@ -217,21 +207,18 @@
             });
 
             const data = await response.json();
-            if(data.error) throw new Error(data.error);
-
             const report = data.report;
 
-            // كشف اللغة تلقائياً وضبط اتجاه الصفحة
-            // نتحقق من أول 100 حرف لمعرفة هل هي إنجليزية أم لا
-            const isEnglish = /^[a-zA-Z\s,.]+$/.test(report.trim().substring(0, 50).replace(/[#*]/g, ''));
-            output.className = isEnglish ? "ltr-dir" : "rtl-dir";
+            // كشف اللغة بعد تنظيف النص من علامات الـ Markdown
+            const cleanText = report.replace(/[#*_]/g, '').trim();
+            const isEnglish = /^[a-zA-Z]/.test(cleanText.substring(0, 20));
 
-            // تحويل الـ Markdown إلى HTML وعرضه فوراً
+            output.className = isEnglish ? "ltr-dir" : "rtl-dir";
             output.innerHTML = marked.parse(report);
             output.style.opacity = "1";
 
         } catch (e) {
-            output.innerHTML = `<div class="alert alert-danger">خطأ: ${e.message}</div>`;
+            output.innerHTML = "خطأ في الاتصال.";
         } finally {
             loader.style.display = "none";
             btn.disabled = false;
@@ -241,22 +228,17 @@
     function copyText() {
         const text = document.getElementById('output-content').innerText;
         navigator.clipboard.writeText(text);
-        alert("✅ تم نسخ التقرير المكثف بنجاح");
+        alert("✅ تم النسخ");
     }
 
     function downloadPDF() {
         const element = document.getElementById('output-content'); 
-        const isEnglish = element.classList.contains('ltr-dir');
-        
-        const opt = {
-            margin: [0.5, 0.5],
-            filename: `Academic_Report_${new Date().getTime()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+        html2pdf().from(element).set({
+            margin: 0.5,
+            filename: 'Report.pdf',
+            html2canvas: { scale: 2 },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save();
+        }).save();
     }
 </script>
 
