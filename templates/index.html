@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcademiX Pro | Eng Reda</title>
+    <title>AcademiX Pro | Professional Dark Edition</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,33 +14,38 @@
 
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.3);
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-dark: #0f172a;
+            --card-dark: #1e293b;
+            --accent-gold: #fbbf24;
+            --text-main: #f8fafc;
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            background: var(--primary-gradient);
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top right, #1e1b4b, transparent), 
+                              radial-gradient(circle at bottom left, #0f172a, transparent);
             background-attachment: fixed;
             font-family: 'Cairo', 'Poppins', sans-serif;
-            color: #fff;
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             overflow-x: hidden;
+            margin: 0;
         }
 
-        /* Glassmorphism Card */
+        /* Glassmorphism Card Dark */
         .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             padding: 40px;
             margin: 20px auto;
-            animation: fadeIn 1s ease-in-out;
+            animation: fadeIn 0.8s ease-out;
         }
 
         @keyframes fadeIn {
@@ -49,56 +54,57 @@
         }
 
         .header-title {
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -1px;
+        }
+
+        .eng-tag {
+            background: var(--accent-gold);
+            color: #000;
+            padding: 2px 12px;
+            border-radius: 6px;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            margin-bottom: 10px;
+            font-size: 0.8rem;
         }
 
-        .signature {
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            color: #ffd700; /* Gold color */
-            font-weight: 600;
-        }
-
-        /* Input Styling */
+        /* Input Styling Dark */
         .custom-input {
-            background: rgba(255, 255, 255, 0.9) !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 1px solid var(--glass-border) !important;
             border-radius: 12px !important;
-            border: none !important;
-            color: #333 !important;
-            padding: 15px 25px !important;
-            font-weight: 600;
+            color: #fff !important;
+            padding: 14px 20px !important;
         }
+
+        .custom-input::placeholder { color: #94a3b8; }
 
         .btn-generate {
-            background: #ffd700;
-            color: #333;
+            background: var(--accent-gold);
+            color: #000;
             border: none;
             border-radius: 12px;
-            padding: 10px 30px;
+            padding: 10px 25px;
             font-weight: 700;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
         }
 
         .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(251, 191, 36, 0.3);
             background: #fff;
-            transform: scale(1.05);
         }
 
-        /* Result Area */
+        /* Result Area Dark */
         .result-area {
-            background: rgba(255, 255, 255, 0.95);
-            color: #2c3e50;
-            border-radius: 20px;
-            padding: 30px;
+            background: #f8fafc; /* خلفية الفاتحة للتقرير لسهولة القراءة والطباعة */
+            color: #1e293b;
+            border-radius: 16px;
+            padding: 35px;
             margin-top: 30px;
-            min-height: 400px;
+            min-height: 450px;
             position: relative;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-            transition: all 0.5s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .action-btns {
@@ -106,37 +112,35 @@
             top: 15px;
             left: 15px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-action {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.3s;
-            border: none;
+            transition: 0.2s;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #475569;
         }
 
-        /* Loader Animation */
-        #loader {
-            display: none;
-            margin: 20px 0;
-        }
+        .btn-action:hover { background: #f1f5f9; color: var(--bg-dark); }
 
-        .spinner-grow { width: 3rem; height: 3rem; color: #ffd700; }
+        /* Loader */
+        #loader { display: none; margin: 30px 0; }
+        .spinner-border { color: var(--accent-gold); width: 3rem; height: 3rem; }
 
         /* Mobile Adjustments */
         @media (max-width: 768px) {
-            .glass-card { padding: 20px; margin: 10px; }
-            .header-title { font-size: 1.5rem; }
-            .btn-generate { width: 100%; margin-top: 10px; }
-            .input-group { display: block !important; }
+            .glass-card { padding: 25px 15px; margin: 10px; }
+            .input-group { flex-direction: column; }
+            .btn-generate { width: 100%; margin-top: 10px; border-radius: 12px !important; }
         }
 
-        /* Direction classes for AI response */
         .rtl-dir { direction: rtl; text-align: right; }
         .ltr-dir { direction: ltr; text-align: left; }
     </style>
@@ -145,50 +149,44 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-10 col-md-12">
+        <div class="col-lg-10">
             <div class="glass-card text-center">
                 <div class="mb-4">
-                    <i class="fas fa-microchip fa-3x mb-3" style="color: #ffd700;"></i>
-                    <h1 class="header-title text-uppercase">AcademiX Pro</h1>
-                    <div class="signature">Developed by: <span class="badge bg-warning text-dark">Eng Reda</span></div>
+                    <h1 class="header-title mb-2">ACADEMIX <span style="color: var(--accent-gold);">PRO</span></h1>
+                    <div class="mb-3"><span class="eng-tag">ENG REDA EDITION</span></div>
+                    <p class="text-white-50">نظام الذكاء الاصطناعي الأكاديمي لتوليد التقارير المكثفة</p>
                 </div>
 
-                <p class="mb-4">منصة الذكاء الاصطناعي المتقدمة لكتابة التقارير الأكاديمية المكثفة</p>
-
-                <div class="input-group mb-3">
-                    <input type="text" id="topic" class="form-control custom-input" placeholder="ادخل موضوع التقرير بالعربي أو الإنجليزي...">
+                <div class="input-group mb-4 shadow-sm">
+                    <input type="text" id="topic" class="form-control custom-input" placeholder="اكتب عنوان التقرير (مثال: الخلايا الشمسية وتطويرها)...">
                     <button class="btn btn-generate" onclick="generateReport()">
-                        <i class="fas fa-paper-plane me-2"></i> إنشاء الآن
+                        <i class="fas fa-magic me-2"></i> توليد التقرير
                     </button>
                 </div>
 
                 <div id="loader">
-                    <div class="spinner-grow" role="status"></div>
-                    <p class="mt-3 fw-bold">جاري صياغة التقرير بلمسة Eng Reda الذكية...</p>
+                    <div class="spinner-border" role="status"></div>
+                    <p class="mt-3 fw-bold text-white-50">جاري تحليل البيانات وصياغة التقرير...</p>
                 </div>
 
                 <div class="result-area text-start shadow" id="report-wrapper">
                     <div class="action-btns">
-                        <button class="btn btn-action btn-outline-primary" onclick="copyText()" title="نسخ النص"><i class="fas fa-copy"></i></button>
-                        <button class="btn btn-action btn-outline-danger" onclick="downloadPDF()" title="تحميل PDF"><i class="fas fa-file-pdf"></i></button>
+                        <button class="btn btn-action" onclick="copyText()" title="نسخ"><i class="fas fa-copy"></i></button>
+                        <button class="btn btn-action" onclick="downloadPDF()" title="تحميل PDF"><i class="fas fa-file-pdf"></i></button>
                     </div>
                     
                     <div id="output-content" class="rtl-dir">
-                        <div class="text-center text-muted pt-5">
-                            <i class="fas fa-book-reader fa-4xl d-block mb-3 opacity-25"></i>
-                            أدخل موضوعك أعلاه لبدء التوليد
+                        <div class="text-center text-muted pt-5 mt-5">
+                            <i class="fas fa-terminal fa-3x d-block mb-3 opacity-25"></i>
+                            في انتظار الأوامر.. أدخل الموضوع لبدء المعالجة
                         </div>
                     </div>
+                </div>
 
-                    <div id="pdf-footer" style="display: none; border-top: 1px solid #ccc; margin-top: 20px; padding-top: 10px; font-size: 12px; color: #666;">
-                        Generated by AcademiX Pro - Engineering Excellence by Eng Reda
-                    </div>
+                <div class="mt-4 text-white-50 small">
+                    Engineered with Excellence | 2024
                 </div>
             </div>
-            
-            <p class="text-center mt-3 opacity-75" style="font-size: 0.8rem;">
-                © 2024 AcademiX-AI | All rights reserved to Eng Reda
-            </p>
         </div>
     </div>
 </div>
@@ -200,19 +198,18 @@
         const loader = document.getElementById('loader');
 
         if(!topic) {
-            alert("يا هندسة، لازم تكتب الموضوع أولاً!");
+            alert("يرجى إدخال الموضوع يا هندسة!");
             return;
         }
 
-        // Show loader, hide content
         loader.style.display = "block";
-        output.style.opacity = "0.3";
+        output.style.opacity = "0.2";
 
         try {
             const response = await fetch('/generate_report', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ topic: topic, language: 'auto' })
+                body: JSON.stringify({ topic: topic })
             });
 
             const data = await response.json();
@@ -220,20 +217,15 @@
 
             const report = data.report;
 
-            // كشف اللغة تلقائياً لتعديل الاتجاه
+            // كشف اللغة
             const isEnglish = /^[a-zA-Z]/.test(report.trim().substring(0, 50));
-            if(isEnglish) {
-                output.className = "ltr-dir";
-            } else {
-                output.className = "rtl-dir";
-            }
+            output.className = isEnglish ? "ltr-dir" : "rtl-dir";
 
-            // تحويل المارك داون لعرض احترافي
             output.innerHTML = marked.parse(report);
             output.style.opacity = "1";
 
         } catch (e) {
-            output.innerHTML = `<div class="alert alert-danger">عذراً، حدث خطأ: ${e.message}</div>`;
+            output.innerHTML = `<div class="alert alert-danger">خطأ في الاتصال بالسيرفر: ${e.message}</div>`;
         } finally {
             loader.style.display = "none";
         }
@@ -242,25 +234,21 @@
     function copyText() {
         const text = document.getElementById('output-content').innerText;
         navigator.clipboard.writeText(text);
-        alert("تم نسخ التقرير بنجاح! - Eng Reda");
+        alert("✅ تم نسخ التقرير");
     }
 
     function downloadPDF() {
-        const element = document.getElementById('report-wrapper');
-        // إظهار فوتر التوقيع للبي دي اف فقط
-        document.getElementById('pdf-footer').style.display = "block";
+        const element = document.getElementById('output-content'); // تم التغيير لطباعة المحتوى فقط بدون التوقيع أو الأزرار
         
         const opt = {
-            margin: 0.5,
-            filename: `AcademiX_Report_EngReda.pdf`,
+            margin: [0.7, 0.7],
+            filename: `Report_${new Date().getTime()}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(element).save().then(() => {
-            document.getElementById('pdf-footer').style.display = "none";
-        });
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 
