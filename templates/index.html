@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcademiX Pro | Professional Dark Edition</title>
+    <title>AcademiX Pro | Professional Edition</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,49 +38,30 @@
         .glass-card {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             padding: 40px;
             margin: 20px auto;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .header-title { font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
-
-        .eng-tag {
-            background: var(--accent-gold);
-            color: #000;
-            padding: 2px 12px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.8rem;
-        }
 
         .custom-input {
             background: rgba(15, 23, 42, 0.8) !important;
             border: 1px solid var(--glass-border) !important;
             border-radius: 12px !important;
             color: #fff !important;
-            padding: 14px 20px !important;
         }
 
         .btn-generate {
             background: var(--accent-gold);
             color: #000;
-            border: none;
             border-radius: 12px;
-            padding: 10px 25px;
             font-weight: 700;
             transition: 0.3s;
         }
 
+        /* منطقة النتائج */
         .result-area {
             background: #ffffff; 
             color: #000000;
@@ -92,57 +73,48 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        /* تنسيق المحتوى الإنجليزي - إجباري لليسار */
-        .ltr-dir { 
-            direction: ltr !important; 
-            text-align: left !important; 
-        }
-        .ltr-dir h1, .ltr-dir h2, .ltr-dir h3, .ltr-dir h4 { 
-            text-align: left !important; 
-            margin-top: 15px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .ltr-dir p, .ltr-dir li { text-align: justify; line-height: 1.6; }
-
-        /* تنسيق المحتوى العربي */
-        .rtl-dir { 
-            direction: rtl !important; 
-            text-align: right !important; 
-        }
-        .rtl-dir h1, .rtl-dir h2, .rtl-dir h3, .rtl-dir h4 { 
-            text-align: right !important; 
-            border-bottom: 1px solid #eee;
-        }
-
-        .action-btns {
+        /* أدوات التحكم الجانبية */
+        .controls-panel {
             position: absolute;
             top: 15px;
             left: 15px;
+            right: 15px;
             display: flex;
-            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
             z-index: 10;
         }
 
+        .font-slider-box {
+            background: #f1f5f9;
+            padding: 5px 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .font-slider-box label { font-size: 12px; font-weight: bold; color: #475569; }
+
         .btn-action {
-            width: 35px;
-            height: 35px;
+            width: 35px; height: 35px;
             border-radius: 8px;
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
         }
+        .btn-action:hover { background: #e2e8f0; }
 
+        /* تنسيق التقرير */
+        #output-content { font-size: 16px; transition: 0.2s; }
+        .ltr-dir { direction: ltr !important; text-align: left !important; }
+        .ltr-dir h1, .ltr-dir h2, .ltr-dir h3 { border-bottom: 2px solid #fbbf24; padding-bottom: 5px; margin-top: 25px; text-align: left !important;}
+        .rtl-dir { direction: rtl !important; text-align: right !important; }
+        .rtl-dir h1, .rtl-dir h2, .rtl-dir h3 { border-bottom: 2px solid #fbbf24; padding-bottom: 5px; margin-top: 25px; text-align: right !important;}
+        
         #loader { display: none; margin: 20px 0; }
-        .spinner-border { color: var(--accent-gold); }
-
-        @media (max-width: 768px) {
-            .glass-card { padding: 20px; }
-            .btn-generate { width: 100%; margin-top: 10px; }
-        }
     </style>
 </head>
 <body>
@@ -150,14 +122,13 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="glass-card text-center">
+            <div class="glass-card text-center shadow">
                 <div class="mb-4">
                     <h1 class="header-title mb-2">ACADEMIX <span style="color: var(--accent-gold);">PRO</span></h1>
-                    <div class="mb-3"><span class="eng-tag">ENG REDA EDITION</span></div>
-                    <p class="text-white-50">توليد تقارير أكاديمية مكثفة وفورية</p>
+                    <p class="text-white-50">نظام التقارير الأكاديمية الذكي لـ Eng Reda</p>
                 </div>
 
-                <div class="input-group mb-4 shadow-sm">
+                <div class="input-group mb-4">
                     <input type="text" id="topic" class="form-control custom-input" placeholder="عنوان التقرير...">
                     <button class="btn btn-generate" id="generateBtn" onclick="generateReport()">
                         <i class="fas fa-magic me-2"></i> توليد التقرير
@@ -165,19 +136,27 @@
                 </div>
 
                 <div id="loader">
-                    <div class="spinner-border" role="status"></div>
-                    <p class="mt-2 text-white-50">جاري الصياغة المكثفة...</p>
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="mt-2 text-white-50">جاري صياغة التقرير وتنسيقه...</p>
                 </div>
 
                 <div class="result-area" id="report-wrapper">
-                    <div class="action-btns">
-                        <button class="btn btn-action" onclick="copyText()"><i class="fas fa-copy"></i></button>
-                        <button class="btn btn-action" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i></button>
+                    <div class="controls-panel">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-action" onclick="copyText()" title="نسخ النص"><i class="fas fa-copy"></i></button>
+                            <button class="btn btn-action text-danger" onclick="downloadPDF()" title="تحميل PDF"><i class="fas fa-file-pdf"></i></button>
+                        </div>
+                        
+                        <div class="font-slider-box">
+                            <label><i class="fas fa-text-height"></i> حجم الخط</label>
+                            <input type="range" id="fontSize" min="12" max="24" value="16" oninput="changeFontSize(this.value)">
+                        </div>
                     </div>
                     
-                    <div id="output-content" class="rtl-dir">
+                    <div id="output-content" class="rtl-dir pt-4">
                         <div class="text-center text-muted pt-5 mt-5">
-                            بانتظار العنوان لبدء التقرير...
+                            <i class="fas fa-file-alt fa-3x mb-3 opacity-25"></i><br>
+                            أدخل العنوان وسأقوم بإنشاء ملف أكاديمي متكامل
                         </div>
                     </div>
                 </div>
@@ -187,6 +166,11 @@
 </div>
 
 <script>
+    // تغيير حجم الخط فورا
+    function changeFontSize(size) {
+        document.getElementById('output-content').style.fontSize = size + "px";
+    }
+
     async function generateReport() {
         const topic = document.getElementById('topic').value;
         const output = document.getElementById('output-content');
@@ -209,16 +193,15 @@
             const data = await response.json();
             const report = data.report;
 
-            // كشف اللغة بعد تنظيف النص من علامات الـ Markdown
             const cleanText = report.replace(/[#*_]/g, '').trim();
             const isEnglish = /^[a-zA-Z]/.test(cleanText.substring(0, 20));
 
-            output.className = isEnglish ? "ltr-dir" : "rtl-dir";
+            output.className = isEnglish ? "ltr-dir pt-4" : "rtl-dir pt-4";
             output.innerHTML = marked.parse(report);
             output.style.opacity = "1";
 
         } catch (e) {
-            output.innerHTML = "خطأ في الاتصال.";
+            output.innerHTML = "حدث خطأ في جلب البيانات.";
         } finally {
             loader.style.display = "none";
             btn.disabled = false;
@@ -228,17 +211,34 @@
     function copyText() {
         const text = document.getElementById('output-content').innerText;
         navigator.clipboard.writeText(text);
-        alert("✅ تم النسخ");
+        alert("✅ تم النسخ بنجاح");
     }
 
     function downloadPDF() {
-        const element = document.getElementById('output-content'); 
-        html2pdf().from(element).set({
+        const element = document.getElementById('output-content');
+        const currentFontSize = document.getElementById('fontSize').value;
+        const isEnglish = element.classList.contains('ltr-dir');
+
+        // إنشاء نسخة نظيفة تماماً للطباعة
+        const printContainer = document.createElement('div');
+        printContainer.innerHTML = element.innerHTML;
+        printContainer.style.padding = "40px";
+        printContainer.style.fontSize = currentFontSize + "px";
+        printContainer.style.color = "#000";
+        printContainer.style.backgroundColor = "#fff";
+        printContainer.style.direction = isEnglish ? "ltr" : "rtl";
+        printContainer.style.textAlign = "justify";
+        printContainer.style.fontFamily = "Arial, sans-serif";
+
+        const opt = {
             margin: 0.5,
-            filename: 'Report.pdf',
-            html2canvas: { scale: 2 },
+            filename: 'Academic_Report_Pro.pdf',
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, backgroundColor: '#ffffff' },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        }).save();
+        };
+
+        html2pdf().set(opt).from(printContainer).save();
     }
 </script>
 
