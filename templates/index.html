@@ -3,95 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcademiX Pro | كاتب التقارير المكثفة</title>
+    <title>AcademiX Pro | Eng Reda</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .report-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #fff; margin-top: 50px; }
-        .result-area { background: #fff; border: 1px solid #dee2e6; border-radius: 15px; padding: 30px; min-height: 400px; position: relative; line-height: 1.8; }
-        .action-btns { position: absolute; top: 15px; left: 15px; z-index: 10; }
-        #loader { display: none; }
-        .btn-primary { background: #4f46e5; border: none; padding: 12px 30px; border-radius: 10px; }
+        :root {
+            --glass: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            background: var(--primary-gradient);
+            background-attachment: fixed;
+            font-family: 'Cairo', 'Poppins', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 40px;
+            margin: 20px auto;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-title {
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .signature {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: #ffd700; /* Gold color */
+            font-weight: 600;
+        }
+
+        /* Input Styling */
+        .custom-input {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-radius: 12px !important;
+            border: none !important;
+            color: #333 !important;
+            padding: 15px 25px !important;
+            font-weight: 600;
+        }
+
+        .btn-generate {
+            background: #ffd700;
+            color: #333;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 30px;
+            font-weight: 700;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-generate:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+
+        /* Result Area */
+        .result-area {
+            background: rgba(255, 255, 255, 0.95);
+            color: #2c3e50;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            min-height: 400px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            transition: all 0.5s;
+        }
+
+        .action-btns {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            border: none;
+        }
+
+        /* Loader Animation */
+        #loader {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .spinner-grow { width: 3rem; height: 3rem; color: #ffd700; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .glass-card { padding: 20px; margin: 10px; }
+            .header-title { font-size: 1.5rem; }
+            .btn-generate { width: 100%; margin-top: 10px; }
+            .input-group { display: block !important; }
+        }
+
+        /* Direction classes for AI response */
+        .rtl-dir { direction: rtl; text-align: right; }
+        .ltr-dir { direction: ltr; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="report-card p-5">
-                <h2 class="text-center fw-bold mb-4 text-indigo"><i class="fas fa-file-alt"></i> منشئ التقارير المكثفة AI</h2>
-                <p class="text-center text-muted mb-4">أدخل الموضوع واترك الذكاء الاصطناعي يكتب لك تقريراً أكاديمياً متكاملاً</p>
-                
-                <div class="input-group mb-4 shadow-sm">
-                    <input type="text" id="topic" class="form-control form-control-lg" placeholder="عنوان التقرير (مثلاً: تأثير الاحتباس الحراري على اقتصاد الدول العربية)">
-                    <button class="btn btn-primary" onclick="generate()">إنشاء التقرير</button>
+        <div class="col-lg-10 col-md-12">
+            <div class="glass-card text-center">
+                <div class="mb-4">
+                    <i class="fas fa-microchip fa-3x mb-3" style="color: #ffd700;"></i>
+                    <h1 class="header-title text-uppercase">AcademiX Pro</h1>
+                    <div class="signature">Developed by: <span class="badge bg-warning text-dark">Eng Reda</span></div>
                 </div>
 
-                <div id="loader" class="text-center my-4">
-                    <div class="spinner-grow text-primary" role="status"></div>
-                    <p class="mt-2 text-primary fw-bold">جاري صياغة التقرير وتحليل البيانات... قد يستغرق ذلك دقيقة</p>
+                <p class="mb-4">منصة الذكاء الاصطناعي المتقدمة لكتابة التقارير الأكاديمية المكثفة</p>
+
+                <div class="input-group mb-3">
+                    <input type="text" id="topic" class="form-control custom-input" placeholder="ادخل موضوع التقرير بالعربي أو الإنجليزي...">
+                    <button class="btn btn-generate" onclick="generateReport()">
+                        <i class="fas fa-paper-plane me-2"></i> إنشاء الآن
+                    </button>
                 </div>
 
-                <div class="result-area" id="report-container">
+                <div id="loader">
+                    <div class="spinner-grow" role="status"></div>
+                    <p class="mt-3 fw-bold">جاري صياغة التقرير بلمسة Eng Reda الذكية...</p>
+                </div>
+
+                <div class="result-area text-start shadow" id="report-wrapper">
                     <div class="action-btns">
-                        <button class="btn btn-sm btn-outline-dark me-2" onclick="copyText()"><i class="fas fa-copy"></i> نسخ</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="savePDF()"><i class="fas fa-file-pdf"></i> حفظ PDF</button>
+                        <button class="btn btn-action btn-outline-primary" onclick="copyText()" title="نسخ النص"><i class="fas fa-copy"></i></button>
+                        <button class="btn btn-action btn-outline-danger" onclick="downloadPDF()" title="تحميل PDF"><i class="fas fa-file-pdf"></i></button>
                     </div>
-                    <div id="output">التقرير سيظهر هنا بشكل منسق...</div>
+                    
+                    <div id="output-content" class="rtl-dir">
+                        <div class="text-center text-muted pt-5">
+                            <i class="fas fa-book-reader fa-4xl d-block mb-3 opacity-25"></i>
+                            أدخل موضوعك أعلاه لبدء التوليد
+                        </div>
+                    </div>
+
+                    <div id="pdf-footer" style="display: none; border-top: 1px solid #ccc; margin-top: 20px; padding-top: 10px; font-size: 12px; color: #666;">
+                        Generated by AcademiX Pro - Engineering Excellence by Eng Reda
+                    </div>
                 </div>
             </div>
+            
+            <p class="text-center mt-3 opacity-75" style="font-size: 0.8rem;">
+                © 2024 AcademiX-AI | All rights reserved to Eng Reda
+            </p>
         </div>
     </div>
 </div>
 
 <script>
-    async function generate() {
+    async function generateReport() {
         const topic = document.getElementById('topic').value;
-        if(!topic) return alert("يرجى إدخال الموضوع!");
+        const output = document.getElementById('output-content');
+        const loader = document.getElementById('loader');
 
-        document.getElementById('loader').style.display = "block";
-        document.getElementById('output').innerHTML = "";
+        if(!topic) {
+            alert("يا هندسة، لازم تكتب الموضوع أولاً!");
+            return;
+        }
+
+        // Show loader, hide content
+        loader.style.display = "block";
+        output.style.opacity = "0.3";
 
         try {
             const response = await fetch('/generate_report', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({topic: topic})
+                body: JSON.stringify({ topic: topic, language: 'auto' })
             });
+
             const data = await response.json();
-            
             if(data.error) throw new Error(data.error);
-            
-            // معالجة الـ Markdown ليظهر بشكل احترافي
-            document.getElementById('output').innerHTML = marked.parse(data.report);
+
+            const report = data.report;
+
+            // كشف اللغة تلقائياً لتعديل الاتجاه
+            const isEnglish = /^[a-zA-Z]/.test(report.trim().substring(0, 50));
+            if(isEnglish) {
+                output.className = "ltr-dir";
+            } else {
+                output.className = "rtl-dir";
+            }
+
+            // تحويل المارك داون لعرض احترافي
+            output.innerHTML = marked.parse(report);
+            output.style.opacity = "1";
+
         } catch (e) {
-            document.getElementById('output').innerHTML = `<div class="alert alert-danger">خطأ: ${e.message}</div>`;
+            output.innerHTML = `<div class="alert alert-danger">عذراً، حدث خطأ: ${e.message}</div>`;
         } finally {
-            document.getElementById('loader').style.display = "none";
+            loader.style.display = "none";
         }
     }
 
     function copyText() {
-        const text = document.getElementById('output').innerText;
+        const text = document.getElementById('output-content').innerText;
         navigator.clipboard.writeText(text);
-        alert("تم نسخ التقرير إلى الحافظة!");
+        alert("تم نسخ التقرير بنجاح! - Eng Reda");
     }
 
-    function savePDF() {
-        const element = document.getElementById('output');
+    function downloadPDF() {
+        const element = document.getElementById('report-wrapper');
+        // إظهار فوتر التوقيع للبي دي اف فقط
+        document.getElementById('pdf-footer').style.display = "block";
+        
         const opt = {
-            margin: 1,
-            filename: 'Academic_Report.pdf',
+            margin: 0.5,
+            filename: `AcademiX_Report_EngReda.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
+            html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
-        html2pdf().set(opt).from(element).save();
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            document.getElementById('pdf-footer').style.display = "none";
+        });
     }
 </script>
+
 </body>
 </html>
