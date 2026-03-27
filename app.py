@@ -49,7 +49,7 @@ def generate_report():
                 {"role": "user", "content": prompt}
             ],
             temperature=0.6, # تقليل الحرارة قليلاً لزيادة الدقة الأكاديمية
-            max_tokens=4000 
+            max_tokens=8000 
         )
         
         return jsonify({'report': completion.choices[0].message.content})
